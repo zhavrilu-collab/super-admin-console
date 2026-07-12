@@ -1,0 +1,163 @@
+name: udruga-platform
+
+services:
+  mysql:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-udruga_saas}
+      MYSQL_USER: ${MYSQL_USER:-udruga}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-me-root}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  admin-php:
+    build:
+      context: ./docker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ${ADMIN_APP_PATH:-..}:/var/www/html
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: http://localhost:${ADMIN_HTTP_PORT:-8001}
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /var/www/html/database/database.sqlite
+      QUEUE_CONNECTION: database
+      CACHE_STORE: database
+      SESSION_DRIVER: database
+      TRUSTED_PROXIES: "*"
+      UDRUGA_SAAS_API_URL: http://nginx:8080
+      UDRUGA_SAAS_API_KEY: ${SYNC_API_KEY:-dev-sync-key-change-me}
+      SAAS_WEBHOOK_SECRET: ${WEBHOOK_SECRET:-dev-sync-key-change-me}
+
+  saas-php:
+    build:
+      context: ./docker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ${SAAS_APP_PATH:-../../udruga-siletici/udruga-saas}:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: http://localhost:${SAAS_HTTP_PORT:-8000}
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${MYSQL_DATABASE:-udruga_saas}
+      DB_USERNAME: ${MYSQL_USER:-udruga}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-change-me}
+      QUEUE_CONNECTION: database
+      CACHE_STORE: database
+      SESSION_DRIVER: database
+      TRUSTED_PROXIES: "*"
+      ADMIN_SYNC_API_KEY: ${SYNC_API_KEY:-dev-sync-key-change-me}
+      ADMIN_CONSOLE_WEBHOOK_URL: http://nginx/api/webhooks/tenants/registered
+      ADMIN_CONSOLE_WEBHOOK_SECRET: ${WEBHOOK_SECRET:-dev-sync-key-change-me}
+      ADMIN_CONSOLE_APPLICATION_SLUG: udruga-saas
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - admin-php
+      - saas-php
+    ports:
+      - "${ADMIN_HTTP_PORT:-8001}:80"
+      - "${SAAS_HTTP_PORT:-8000}:8080"
+    volumes:
+      - ./nginx/admin.conf:/etc/nginx/conf.d/admin.conf:ro
+      - ./nginx/saas.conf:/etc/nginx/conf.d/saas.conf:ro
+      - ${ADMIN_APP_PATH:-..}:/var/www/admin:ro
+      - ${SAAS_APP_PATH:-../../udruga-siletici/udruga-saas}:/var/www/saas:ro
+
+  admin-queue:
+    build:
+      context: ./docker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan queue:work database --sleep=3 --tries=3 --max-time=3600
+    volumes:
+      - ${ADMIN_APP_PATH:-..}:/var/www/html
+    depends_on:
+      - admin-php
+    environment:
+      APP_ENV: production
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /var/www/html/database/database.sqlite
+      QUEUE_CONNECTION: database
+
+  admin-scheduler:
+    build:
+      context: ./docker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: >
+      sh -c "while true; do php artisan schedule:run --no-interaction; sleep 60; done"
+    volumes:
+      - ${ADMIN_APP_PATH:-..}:/var/www/html
+    depends_on:
+      - admin-php
+    environment:
+      APP_ENV: production
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /var/www/html/database/database.sqlite
+      QUEUE_CONNECTION: database
+      UDRUGA_SAAS_API_URL: http://nginx:8080
+      UDRUGA_SAAS_API_KEY: ${SYNC_API_KEY:-dev-sync-key-change-me}
+
+  saas-queue:
+    build:
+      context: ./docker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan queue:work database --sleep=3 --tries=3 --max-time=3600
+    volumes:
+      - ${SAAS_APP_PATH:-../../udruga-siletici/udruga-saas}:/var/www/html
+    depends_on:
+      saas-php:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_DATABASE: ${MYSQL_DATABASE:-udruga_saas}
+      DB_USERNAME: ${MYSQL_USER:-udruga}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-change-me}
+      QUEUE_CONNECTION: database
+
+  saas-scheduler:
+    build:
+      context: ./docker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: >
+      sh -c "while true; do php artisan schedule:run --no-interaction; sleep 60; done"
+    volumes:
+      - ${SAAS_APP_PATH:-../../udruga-siletici/udruga-saas}:/var/www/html
+    depends_on:
+      - saas-php
+    environment:
+      APP_ENV: production
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_DATABASE: ${MYSQL_DATABASE:-udruga_saas}
+      DB_USERNAME: ${MYSQL_USER:-udruga}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-change-me}
+      QUEUE_CONNECTION: database
+
+volumes:
+  mysql_data:
