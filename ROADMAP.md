@@ -238,7 +238,7 @@ flowchart TB
 
 | ID | Task | Opis | Prioritet |
 |----|------|------|-----------|
-| D3.1 | Customer webhooks | Tenant registrira URL; eventi `member.created`, `invoice.paid` | P1 |
+| D3.1 | Customer webhooks | Tenant registrira URL; eventi `member.created`, `invoice.paid` | P1 | ✅ (D-S1) |
 | D3.2 | API Gateway / versioning | `/api/v1/...`, OpenAPI spec | P1 |
 | D3.3 | Feature flags | Runtime toggles po tenant/user (beta) | P2 |
 | D3.4 | Sentry / error tracking | Backend + frontend | P1 |
@@ -252,6 +252,16 @@ flowchart TB
 | D4.1 | Upravljanje super-admin korisnicima | CRUD, dodjela uloga | P1 |
 | D4.2 | Prošireni audit | App CRUD, settings, 2FA promjene | P2 |
 | D4.3 | Vođeni onboarding (modul) | Interaktivni tour prve prijave | P2 |
+
+### Faza D — predloženi sprintovi
+
+| Sprint | Fokus | Deliverables |
+|--------|-------|--------------|
+| D-S1 | D3.1 | Customer webhooks (subscribe, dispatch, HMAC) | ✅ |
+| D-S2 | D1.1 | Google OAuth (Socialite) | |
+| D-S3 | D2.1 | GDPR data export | |
+| D-S4 | D1.2, D3.2 | Microsoft OIDC + API v1 | |
+| D-S5 | D2.2, D4.1 | Erasure workflow + super-admin CRUD | |
 
 ---
 

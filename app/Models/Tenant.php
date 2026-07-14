@@ -72,4 +72,12 @@ class Tenant extends Model
             ])
             ->latestOfMany();
     }
+
+    /**
+     * @return HasMany<TenantCustomerWebhook, $this>
+     */
+    public function customerWebhooks(): HasMany
+    {
+        return $this->hasMany(TenantCustomerWebhook::class);
+    }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Auth\PlatformAuthController;
 use App\Http\Controllers\Api\PlatformBillingController;
+use App\Http\Controllers\Api\PlatformCustomerWebhookController;
 use App\Http\Controllers\Api\PlatformImpersonationController;
 use App\Http\Controllers\Api\PlatformInviteController;
 use App\Http\Controllers\Api\PlatformUserImportController;
@@ -74,6 +75,18 @@ Route::middleware([VerifySaasWebhookSecret::class, 'throttle:webhooks'])
 
         Route::post('billing/portal', [PlatformBillingController::class, 'portal'])
             ->name('billing.portal');
+
+        Route::get('customer-webhooks', [PlatformCustomerWebhookController::class, 'index'])
+            ->name('customer-webhooks.index');
+
+        Route::post('customer-webhooks', [PlatformCustomerWebhookController::class, 'store'])
+            ->name('customer-webhooks.store');
+
+        Route::delete('customer-webhooks/{webhookId}', [PlatformCustomerWebhookController::class, 'destroy'])
+            ->name('customer-webhooks.destroy');
+
+        Route::post('events/dispatch', [PlatformCustomerWebhookController::class, 'dispatch'])
+            ->name('events.dispatch');
     });
 
 Route::middleware([VerifySaasWebhookSecret::class, 'throttle:webhooks'])
