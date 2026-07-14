@@ -6,7 +6,7 @@
 param(
     [string]$PhpPath = "C:\xampp\php\php.exe",
     [string]$AdminRoot = "C:\Users\zoran.havriluk\multi-tenant console",
-    [string]$SaasRoot = "C:\Users\zoran.havriluk\udruga-siletici\udruga-saas",
+    [string]$SaasRoot = "C:\Users\zoran.havriluk\udruga-siletici\udruga-saas"
 )
 
 $ErrorActionPreference = "Stop"
