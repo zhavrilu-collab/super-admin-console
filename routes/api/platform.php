@@ -28,6 +28,7 @@ Route::middleware('throttle:platform-auth')
     ->name($routeNamePrefix.'auth.')
     ->group(function () use ($routeNamePrefix) {
         Route::post('login', [PlatformAuthController::class, 'login'])->name('login');
+        Route::post('register', [PlatformAuthController::class, 'register'])->name('register');
 
         Route::middleware([AuthenticatePlatformToken::class])
             ->group(function () use ($routeNamePrefix) {

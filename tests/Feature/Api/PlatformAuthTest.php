@@ -82,4 +82,31 @@ class PlatformAuthTest extends TestCase
         ])->assertUnprocessable()
             ->assertJsonValidationErrors(['email']);
     }
+
+    public function test_platform_user_can_register_and_login(): void
+    {
+        $register = $this->postJson('/api/auth/register', [
+            'name' => 'Nova Tvrtka Admin',
+            'email' => 'novi@tvrtka.hr',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $register->assertCreated()
+            ->assertJsonPath('user.email', 'novi@tvrtka.hr');
+
+        $this->postJson('/api/auth/register', [
+            'name' => 'Drugi Admin',
+            'email' => 'novi@tvrtka.hr',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
+
+        $this->postJson('/api/auth/login', [
+            'email' => 'novi@tvrtka.hr',
+            'password' => 'password123',
+        ])->assertOk()
+            ->assertJsonPath('user.email', 'novi@tvrtka.hr');
+    }
 }

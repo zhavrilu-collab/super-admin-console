@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\PlatformLoginRequest;
+use App\Http\Requests\Api\PlatformRegisterRequest;
 use App\Services\Identity\PlatformAuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,6 +23,17 @@ class PlatformAuthController extends Controller
         );
 
         return response()->json($payload);
+    }
+
+    public function register(PlatformRegisterRequest $request): JsonResponse
+    {
+        $payload = $this->platformAuth->register(
+            $request->string('name')->toString(),
+            $request->string('email')->toString(),
+            $request->string('password')->toString(),
+        );
+
+        return response()->json($payload, 201);
     }
 
     public function me(Request $request): JsonResponse

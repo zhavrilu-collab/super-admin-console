@@ -41,6 +41,33 @@ class PlatformAuthService
     }
 
     /**
+     * @return array{token: string, user: array<string, mixed>}
+     */
+    public function register(string $name, string $email, string $password): array
+    {
+        if (User::query()->where('email', $email)->exists()) {
+            throw ValidationException::withMessages([
+                'email' => ['Račun s tim e-mailom već postoji. Prijavite se pa registrirajte tvrtku.'],
+            ]);
+        }
+
+        $user = User::query()->create([
+            'name' => $name,
+            'email' => $email,
+            'password' => Hash::make($password),
+            'is_super_admin' => false,
+            'email_verified_at' => now(),
+        ]);
+
+        $token = PlatformAccessToken::issueFor($user);
+
+        return [
+            'token' => $token,
+            'user' => $this->serializeUser($user),
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function serializeUser(User $user): array
