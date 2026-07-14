@@ -30,6 +30,7 @@ param(
     [string]$PhpPath = "C:\xampp\php\php.exe",
     [string]$AdminRoot = "C:\Users\zoran.havriluk\multi-tenant console",
     [string]$SaasRoot = "C:\Users\zoran.havriluk\udruga-siletici\udruga-saas",
+    [string]$SmbRoot = "C:\Users\zoran.havriluk\smb-saas",
     [switch]$Migrate,
     [switch]$SkipWorkers,
     [switch]$WorkersOnly
@@ -45,7 +46,8 @@ function Test-DevPrerequisites {
 
     foreach ($project in @(
         @{ Name = "Admin konzola"; Path = $AdminRoot },
-        @{ Name = "Udruga SaaS"; Path = $SaasRoot }
+        @{ Name = "Udruga SaaS"; Path = $SaasRoot },
+        @{ Name = "SMB SaaS"; Path = $SmbRoot }
     )) {
         $artisan = Join-Path $project.Path "artisan"
         if (-not (Test-Path $artisan)) {
@@ -115,12 +117,14 @@ Test-DevPrerequisites
 
 if ($Migrate) {
     Invoke-ProjectMigrate -Name "Udruga SaaS" -Root $SaasRoot
+    Invoke-ProjectMigrate -Name "SMB SaaS" -Root $SmbRoot
     Invoke-ProjectMigrate -Name "Admin konzola" -Root $AdminRoot
     Write-Host ""
 }
 
 if (-not $WorkersOnly) {
     Start-DevServer -Name "Udruga SaaS" -Root $SaasRoot -Port 8000
+    Start-DevServer -Name "SMB SaaS" -Root $SmbRoot -Port 8002
     Start-DevServer -Name "Admin konzola" -Root $AdminRoot -Port 8001
     Write-Host ""
 }
@@ -133,6 +137,7 @@ Write-Host ""
 Write-Host "Gotovo." -ForegroundColor Green
 Write-Host ""
 Write-Host "  Udruga SaaS:      http://127.0.0.1:8000"
+Write-Host "  SMB SaaS:         http://127.0.0.1:8002"
 Write-Host "  Admin konzola:    http://127.0.0.1:8001"
 Write-Host "  Admin prijava:    admin@example.com / password"
 Write-Host ""

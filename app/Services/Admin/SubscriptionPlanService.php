@@ -140,6 +140,61 @@ class SubscriptionPlanService
         }
     }
 
+    public function seedSmbDefaults(Application $application): void
+    {
+        $defaults = [
+            [
+                'slug' => 'basic',
+                'name' => 'Starter',
+                'member_limit' => 3,
+                'badge_class' => 'secondary',
+                'sort_order' => 1,
+                'is_default' => true,
+                'subdomain' => false,
+                'custom_domain' => false,
+                'editable_sections' => false,
+                'cookie_banner' => false,
+                'monthly_price_cents' => 0,
+            ],
+            [
+                'slug' => 'standard',
+                'name' => 'Business',
+                'member_limit' => 15,
+                'badge_class' => 'primary',
+                'sort_order' => 2,
+                'is_default' => false,
+                'subdomain' => true,
+                'custom_domain' => false,
+                'editable_sections' => true,
+                'cookie_banner' => false,
+                'monthly_price_cents' => 4900,
+            ],
+            [
+                'slug' => 'premium',
+                'name' => 'Enterprise',
+                'member_limit' => null,
+                'badge_class' => 'dark',
+                'sort_order' => 3,
+                'is_default' => false,
+                'subdomain' => true,
+                'custom_domain' => true,
+                'editable_sections' => true,
+                'cookie_banner' => true,
+                'monthly_price_cents' => 14900,
+            ],
+        ];
+
+        foreach ($defaults as $plan) {
+            SubscriptionPlan::query()->updateOrCreate(
+                [
+                    'application_id' => $application->id,
+                    'slug' => $plan['slug'],
+                ],
+                $plan,
+            );
+        }
+    }
+
     public function setDefault(SubscriptionPlan $plan): void
     {
         DB::transaction(function () use ($plan): void {

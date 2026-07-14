@@ -7,6 +7,10 @@ return [
             'label' => 'Udruga SaaS API (standardni)',
             'class' => \App\Services\Admin\Sync\UdrugaSaasSyncDriver::class,
         ],
+        'smb_saas' => [
+            'label' => 'SMB SaaS API (standardni)',
+            'class' => \App\Services\Admin\Sync\SmbSaasSyncDriver::class,
+        ],
     ],
 
     'applications' => [
@@ -15,6 +19,12 @@ return [
             'driver' => \App\Services\Admin\Sync\UdrugaSaasSyncDriver::class,
             'base_url' => env('UDRUGA_SAAS_API_URL', 'http://127.0.0.1:8000'),
             'api_key' => env('UDRUGA_SAAS_API_KEY'),
+        ],
+
+        'smb-saas' => [
+            'driver' => \App\Services\Admin\Sync\SmbSaasSyncDriver::class,
+            'base_url' => env('SMB_SAAS_API_URL', 'http://127.0.0.1:8002'),
+            'api_key' => env('SMB_SAAS_API_KEY'),
         ],
 
     ],

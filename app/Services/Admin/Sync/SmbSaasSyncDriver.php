@@ -2,15 +2,15 @@
 
 namespace App\Services\Admin\Sync;
 
-class UdrugaSaasSyncDriver extends AbstractSaasOrganizationSyncDriver
+class SmbSaasSyncDriver extends AbstractSaasOrganizationSyncDriver
 {
     protected function applicationLabel(): string
     {
-        return 'udruga-saas';
+        return 'smb-saas';
     }
 
     protected function devServerHint(): string
     {
-        return 'Provjeri radi li server na http://127.0.0.1:8000.';
+        return 'Provjeri radi li server na http://127.0.0.1:8002.';
     }
 }

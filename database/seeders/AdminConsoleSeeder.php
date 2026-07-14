@@ -53,6 +53,19 @@ class AdminConsoleSeeder extends Seeder
 
         app(SubscriptionPlanService::class)->seedDefaults($udrugaSaas);
 
+        $smbSaas = Application::query()->updateOrCreate(
+            ['slug' => 'smb-saas'],
+            [
+                'name' => 'SMB SaaS',
+                'description' => 'Multi-tenant SaaS platforma za mala i srednja poduzeća.',
+                'sync_driver' => \App\Services\Admin\Sync\SmbSaasSyncDriver::class,
+                'api_base_url' => 'http://127.0.0.1:8002',
+                'api_sync_key' => 'dev-sync-key-change-me',
+            ],
+        );
+
+        app(SubscriptionPlanService::class)->seedSmbDefaults($smbSaas);
+
         $opgSaas = Application::query()->where('slug', 'opg-saas')->first();
         if ($opgSaas !== null) {
             app(SubscriptionPlanService::class)->seedDefaults($opgSaas);

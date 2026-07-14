@@ -267,14 +267,22 @@ flowchart TB
 
 ## Faza E — Drugi modul (SMB)
 
-**Preduvjet:** Faze B i C stabilne za udruga-saas.
+**Preduvjet:** Faze B, C i D stabilne za udruga-saas.
 
-| ID | Task | Opis |
-|----|------|------|
-| E1 | Nova `Application` u konzoli | SMB slug, sync driver |
-| E2 | SMB Laravel app | Isti Core auth + billing API |
-| E3 | SMB RBAC profili | Vlasnik, prodaja, računovođa |
-| E4 | SMB dokumenti | Računi, PDV, opcionalno fiskalizacija |
+| ID | Task | Opis | Status |
+|----|------|------|--------|
+| E1 | Nova `Application` u konzoli | SMB slug, sync driver | ✅ (E-S1) |
+| E2 | SMB Laravel app | Isti Core auth + billing API | 🔄 (E-S1 scaffold) |
+| E3 | SMB RBAC profili | Vlasnik, prodaja, računovođa | |
+| E4 | SMB dokumenti | Računi, PDV, opcionalno fiskalizacija | |
+
+### Faza E — predloženi sprintovi
+
+| Sprint | Fokus | Deliverables |
+|--------|-------|--------------|
+| E-S1 | E1, E2 (scaffold) | SMB Application u konzoli + `smb-saas` modul (sync API, Core auth) | ✅ |
+| E-S2 | E2, E3 | Registracija tvrtke, RBAC profili | |
+| E-S3 | E4 | Računi i PDV modul | |
 
 ---
 
