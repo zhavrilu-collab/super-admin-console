@@ -75,6 +75,14 @@ class User extends Authenticatable
         return $this->hasMany(PlatformUserLink::class);
     }
 
+    /**
+     * @return HasMany<OAuthIdentity, $this>
+     */
+    public function oauthIdentities(): HasMany
+    {
+        return $this->hasMany(OAuthIdentity::class);
+    }
+
     public function isPlatformUser(): bool
     {
         return ! $this->isSuperAdmin();

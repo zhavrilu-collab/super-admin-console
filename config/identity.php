@@ -19,4 +19,11 @@ return [
         explode(',', (string) env('PLATFORM_ALLOWED_MODULE_ORIGINS', '')),
     ))),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Google OAuth (Faza D)
+    |--------------------------------------------------------------------------
+    */
+    'google_oauth_enabled' => (bool) env('GOOGLE_OAUTH_ENABLED', false),
+
 ];

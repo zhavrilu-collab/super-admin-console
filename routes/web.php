@@ -12,7 +12,16 @@ use App\Http\Controllers\Admin\AdminTenantImpersonationController;
 use App\Http\Controllers\Admin\AdminTenantController;
 use App\Http\Controllers\Admin\AdminTwoFactorController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\PlatformOAuthController;
 use Illuminate\Support\Facades\Route;
+
+Route::middleware('throttle:platform-auth')->group(function () {
+    Route::get('/auth/google/redirect', [PlatformOAuthController::class, 'redirectToGoogle'])
+        ->name('auth.google.redirect');
+
+    Route::get('/auth/google/callback', [PlatformOAuthController::class, 'handleGoogleCallback'])
+        ->name('auth.google.callback');
+});
 
 Route::get('/', function () {
     return redirect()->route('login');

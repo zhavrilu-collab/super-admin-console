@@ -220,7 +220,7 @@ flowchart TB
 
 | ID | Task | Opis | Prioritet |
 |----|------|------|-----------|
-| D1.1 | Google OAuth | Laravel Socialite | P1 |
+| D1.1 | Google OAuth | Laravel Socialite | P1 | ✅ (D-S2) |
 | D1.2 | Microsoft 365 / Azure AD | OIDC | P1 |
 | D1.3 | Apple Sign In | P2 |
 | D1.4 | SSO po organizaciji | Enforce SSO za odabrane tenant-e | P2 |
@@ -258,7 +258,7 @@ flowchart TB
 | Sprint | Fokus | Deliverables |
 |--------|-------|--------------|
 | D-S1 | D3.1 | Customer webhooks (subscribe, dispatch, HMAC) | ✅ |
-| D-S2 | D1.1 | Google OAuth (Socialite) | |
+| D-S2 | D1.1 | Google OAuth (Socialite) | ✅ |
 | D-S3 | D2.1 | GDPR data export | |
 | D-S4 | D1.2, D3.2 | Microsoft OIDC + API v1 | |
 | D-S5 | D2.2, D4.1 | Erasure workflow + super-admin CRUD | |
