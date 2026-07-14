@@ -26,10 +26,18 @@ class ConsoleSettingsService
 
     public const WEBHOOK_SECRET = 'webhook.secret';
 
+    public const STRIPE_SECRET_KEY = 'billing.stripe_secret_key';
+
+    public const STRIPE_PUBLISHABLE_KEY = 'billing.stripe_publishable_key';
+
+    public const STRIPE_WEBHOOK_SECRET = 'billing.stripe_webhook_secret';
+
     /** @var list<string> */
     private const ENCRYPTED_KEYS = [
         self::MAIL_PASSWORD,
         self::WEBHOOK_SECRET,
+        self::STRIPE_SECRET_KEY,
+        self::STRIPE_WEBHOOK_SECRET,
     ];
 
     public function get(string $key, ?string $default = null): ?string
@@ -124,6 +132,19 @@ class ConsoleSettingsService
     public function webhookSecret(): ?string
     {
         return $this->get(self::WEBHOOK_SECRET, config('webhook.secret'));
+    }
+
+    /**
+     * @return array<string, string|null>
+     */
+    public function billingSettingsForForm(): array
+    {
+        return [
+            'stripe_publishable_key' => $this->get(
+                self::STRIPE_PUBLISHABLE_KEY,
+                config('billing.stripe_publishable_key'),
+            ) ?? '',
+        ];
     }
 
     /**

@@ -14,6 +14,12 @@ Schedule::command('tenants:sync')
     ->onOneServer()
     ->appendOutputTo(storage_path('logs/tenant-sync.log'));
 
+Schedule::command('billing:process-dunning')
+    ->dailyAt('08:00')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/billing-dunning.log'));
+
 Schedule::command('queue:work --stop-when-empty --max-time=55')
     ->everyMinute()
     ->withoutOverlapping()

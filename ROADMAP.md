@@ -63,7 +63,7 @@ flowchart TB
 | Super-admin 2FA | ✅ | Obavezni TOTP |
 | Deploy scaffolding | ✅ | Docker, DEPLOY.md, dev skripte |
 | Jedinstveni IdP | ❌ | Odvojeni login u konzoli i modulu |
-| Global billing | ❌ | Nema Stripe/dunning |
+| Global billing | ✅ | Stripe, dunning, self-service, MRR |
 | Tenant audit | ❌ | Schema u modulu, nema pisanja |
 | SSO / GDPR | ❌ | Nema |
 | Impersonation / feature flags | ❌ | Nema |
@@ -204,11 +204,11 @@ flowchart TB
 
 | Sprint | Fokus | Deliverables |
 |--------|-------|--------------|
-| C-S1 | C1.1–C1.3 | Stripe setup, subscription model |
-| C-S2 | C1.4–C1.5 | Checkout + webhooks |
-| C-S3 | C2.1–C2.3 | Dunning + auto-suspend |
-| C-S4 | C2.4, C3.1–C3.2 | Proration; self-service UI |
-| C-S5 | C3.3–C3.4 | MRR/Churn dashboard |
+| C-S1 | C1.1–C1.3 | Stripe setup, subscription model | ✅ |
+| C-S2 | C1.4–C1.5 | Checkout + webhooks | ✅ |
+| C-S3 | C2.1–C2.3 | Dunning + auto-suspend | ✅ |
+| C-S4 | C2.4, C3.1–C3.2 | Proration; self-service UI | ✅ |
+| C-S5 | C3.3–C3.4 | MRR/Churn dashboard | ✅ |
 
 ---
 

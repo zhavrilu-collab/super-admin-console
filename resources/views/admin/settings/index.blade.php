@@ -5,7 +5,7 @@
 @section('content')
 <div class="mb-4">
     <h1 class="h3 mb-1">Postavke konzole</h1>
-    <p class="text-muted mb-0">E-mail, obavijesti i webhook parametri.</p>
+    <p class="text-muted mb-0">E-mail, Stripe naplata i webhook parametri.</p>
 </div>
 
 <div class="row g-4">
@@ -76,6 +76,36 @@
                         <input type="text" name="mail_from_name" class="form-control @error('mail_from_name') is-invalid @enderror"
                                value="{{ old('mail_from_name', $mail['mail_from_name']) }}" required>
                         @error('mail_from_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <hr>
+
+                    <h3 class="h6 mb-3">Stripe naplata</h3>
+
+                    @if($stripeConfigured)
+                        <div class="alert alert-success py-2 small mb-3">Stripe je konfiguriran (secret key postavljen).</div>
+                    @else
+                        <div class="alert alert-warning py-2 small mb-3">Stripe nije konfiguriran — unesite secret key ili postavite <code>STRIPE_SECRET_KEY</code> u <code>.env</code>.</div>
+                    @endif
+
+                    <div class="mb-3">
+                        <label class="form-label">Publishable key</label>
+                        <input type="text" name="stripe_publishable_key" class="form-control @error('stripe_publishable_key') is-invalid @enderror"
+                               value="{{ old('stripe_publishable_key', $billing['stripe_publishable_key']) }}" placeholder="pk_test_...">
+                        @error('stripe_publishable_key')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Secret key</label>
+                        <input type="password" name="stripe_secret_key" class="form-control" autocomplete="new-password"
+                               placeholder="{{ $hasStripeSecretKey ? '•••••••• (ostavi prazno da zadržiš)' : 'sk_test_...' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Webhook signing secret</label>
+                        <input type="password" name="stripe_webhook_secret" class="form-control" autocomplete="new-password"
+                               placeholder="{{ $hasStripeWebhookSecret ? '•••••••• (ostavi prazno da zadržiš)' : 'whsec_...' }}">
+                        <div class="form-text">Endpoint: <code>{{ url('/api/webhooks/stripe') }}</code></div>
                     </div>
 
                     <hr>

@@ -41,9 +41,15 @@ class UdrugaSaasSyncDriver implements TenantSyncDriver
 
     public function pushTenantPlan(Tenant $tenant, string $planSlug): void
     {
-        $this->patchOrganization($tenant, [
+        $tenant->loadMissing('activeSubscription');
+
+        $payload = array_filter([
             'plan' => $planSlug,
-        ]);
+            'stripe_customer_id' => $tenant->stripe_customer_id,
+            'stripe_subscription_id' => $tenant->activeSubscription?->stripe_subscription_id,
+        ], fn ($value) => $value !== null && $value !== '');
+
+        $this->patchOrganization($tenant, $payload);
     }
 
     /**

@@ -26,6 +26,8 @@
                     <th>Slug</th>
                     <th>Limit članova</th>
                     <th>Web / domene</th>
+                    <th>Stripe Price</th>
+                    <th>Mjesečno</th>
                     <th>Tenanata</th>
                     <th>Zadani</th>
                     <th class="text-end">Akcije</th>
@@ -48,6 +50,14 @@
                                 —
                             @endif
                         </td>
+                        <td class="small">
+                            @if($plan->stripe_price_id)
+                                <code>{{ $plan->stripe_price_id }}</code>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
+                        <td class="small">{{ $plan->monthlyPriceLabel() }}</td>
                         <td>{{ $tenantCounts[$plan->slug] ?? 0 }}</td>
                         <td>
                             @if($plan->is_default)
@@ -68,7 +78,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">
+                        <td colspan="9" class="text-center text-muted py-4">
                             Nema definiranih paketa. Dodajte prvi paket za ovu aplikaciju.
                         </td>
                     </tr>

@@ -19,6 +19,9 @@ class SubscriptionPlan extends Model
         'custom_domain',
         'editable_sections',
         'cookie_banner',
+        'stripe_product_id',
+        'stripe_price_id',
+        'monthly_price_cents',
     ];
 
     /**
@@ -29,6 +32,7 @@ class SubscriptionPlan extends Model
         return [
             'member_limit' => 'integer',
             'sort_order' => 'integer',
+            'monthly_price_cents' => 'integer',
             'is_default' => 'boolean',
             'subdomain' => 'boolean',
             'custom_domain' => 'boolean',
@@ -53,6 +57,15 @@ class SubscriptionPlan extends Model
     public function memberLimitLabel(): string
     {
         return $this->isUnlimited() ? 'Neograničeno' : (string) $this->member_limit;
+    }
+
+    public function monthlyPriceLabel(): string
+    {
+        if ($this->monthly_price_cents === null || $this->monthly_price_cents <= 0) {
+            return '—';
+        }
+
+        return number_format($this->monthly_price_cents / 100, 2, ',', '.').' €';
     }
 
     public function tenantCount(): int

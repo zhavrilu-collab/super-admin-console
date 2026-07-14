@@ -99,6 +99,7 @@ class SubscriptionPlanService
                 'custom_domain' => false,
                 'editable_sections' => false,
                 'cookie_banner' => false,
+                'monthly_price_cents' => 0,
             ],
             [
                 'slug' => 'standard',
@@ -111,6 +112,7 @@ class SubscriptionPlanService
                 'custom_domain' => false,
                 'editable_sections' => true,
                 'cookie_banner' => true,
+                'monthly_price_cents' => 2900,
             ],
             [
                 'slug' => 'premium',
@@ -123,6 +125,7 @@ class SubscriptionPlanService
                 'custom_domain' => true,
                 'editable_sections' => true,
                 'cookie_banner' => true,
+                'monthly_price_cents' => 7900,
             ],
         ];
 

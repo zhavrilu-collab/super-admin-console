@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminApplicationController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminAppController;
+use App\Http\Controllers\Admin\AdminBillingDashboardController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminSubscriptionPlanController;
 use App\Http\Controllers\Admin\AdminSettingsController;
@@ -36,6 +37,7 @@ Route::middleware(['auth', 'admin', 'require-super-admin-2fa'])
     ->name('admin.')
     ->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/naplata', [AdminBillingDashboardController::class, 'index'])->name('billing.index');
         Route::get('/audit-log', [AdminAuditLogController::class, 'index'])->name('audit.index');
         Route::post('/sync', [AdminSyncController::class, 'pull'])
             ->middleware('throttle:admin-sync')

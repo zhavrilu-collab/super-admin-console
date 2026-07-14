@@ -33,8 +33,13 @@
                                 {{ $log->created_at->format('d.m.Y. H:i') }}
                             </td>
                             <td>
-                                <span class="fw-medium">{{ $log->user->name }}</span>
-                                <div class="text-muted small">{{ $log->user->email }}</div>
+                                @if($log->user)
+                                    <span class="fw-medium">{{ $log->user->name }}</span>
+                                    <div class="text-muted small">{{ $log->user->email }}</div>
+                                @else
+                                    <span class="fw-medium text-muted">Sustav</span>
+                                    <div class="text-muted small">automatska akcija</div>
+                                @endif
                             </td>
                             <td>
                                 <span class="badge bg-secondary">{{ $log->action->label() }}</span>

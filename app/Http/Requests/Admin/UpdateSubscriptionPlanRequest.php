@@ -41,6 +41,9 @@ class UpdateSubscriptionPlanRequest extends FormRequest
             'custom_domain' => ['sometimes', 'boolean'],
             'editable_sections' => ['sometimes', 'boolean'],
             'cookie_banner' => ['sometimes', 'boolean'],
+            'stripe_product_id' => ['nullable', 'string', 'max:255'],
+            'stripe_price_id' => ['nullable', 'string', 'max:255'],
+            'monthly_price' => ['nullable', 'numeric', 'min:0', 'max:999999'],
         ];
     }
 
@@ -62,6 +65,18 @@ class UpdateSubscriptionPlanRequest extends FormRequest
             'custom_domain' => (bool) ($data['custom_domain'] ?? false),
             'editable_sections' => (bool) ($data['editable_sections'] ?? false),
             'cookie_banner' => (bool) ($data['cookie_banner'] ?? false),
+            'stripe_product_id' => $this->filled('stripe_product_id') ? $data['stripe_product_id'] : null,
+            'stripe_price_id' => $this->filled('stripe_price_id') ? $data['stripe_price_id'] : null,
+            'monthly_price_cents' => $this->monthlyPriceCentsFromInput($data),
         ];
+    }
+
+    private function monthlyPriceCentsFromInput(array $data): ?int
+    {
+        if (! $this->filled('monthly_price')) {
+            return null;
+        }
+
+        return (int) round(((float) $data['monthly_price']) * 100);
     }
 }

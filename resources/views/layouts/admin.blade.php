@@ -25,6 +25,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('admin.billing.*')) active @endif" href="{{ route('admin.billing.index') }}">
+                        Naplata
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link @if(request()->routeIs('admin.audit.*')) active @endif" href="{{ route('admin.audit.index') }}">
                         Audit log
                     </a>

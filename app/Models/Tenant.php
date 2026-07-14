@@ -6,6 +6,8 @@ use App\Enums\TenantStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Tenant extends Model
 {
@@ -19,6 +21,7 @@ class Tenant extends Model
         'slug',
         'status',
         'plan',
+        'stripe_customer_id',
         'synced_at',
     ];
 
@@ -47,5 +50,26 @@ class Tenant extends Model
     public function application(): BelongsTo
     {
         return $this->belongsTo(Application::class);
+    }
+
+    /**
+     * @return HasMany<TenantSubscription, $this>
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(TenantSubscription::class);
+    }
+
+    /**
+     * @return HasOne<TenantSubscription, $this>
+     */
+    public function activeSubscription(): HasOne
+    {
+        return $this->hasOne(TenantSubscription::class)
+            ->whereIn('status', [
+                \App\Enums\SubscriptionStatus::Active->value,
+                \App\Enums\SubscriptionStatus::Trialing->value,
+            ])
+            ->latestOfMany();
     }
 }

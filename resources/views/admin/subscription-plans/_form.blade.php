@@ -73,3 +73,31 @@
            @checked(old('cookie_banner', $plan->cookie_banner ?? false))>
     <label class="form-check-label" for="plan-cookie-banner">Cookie banner na javnom webu</label>
 </div>
+
+<hr class="my-4">
+<h2 class="h6 mb-3">Stripe naplata</h2>
+
+<div class="mb-3">
+    <label class="form-label">Mjesečna cijena (EUR)</label>
+    <input type="number" name="monthly_price" step="0.01" min="0"
+           class="form-control @error('monthly_price') is-invalid @enderror"
+           value="{{ old('monthly_price', isset($plan->monthly_price_cents) ? number_format($plan->monthly_price_cents / 100, 2, '.', '') : '') }}"
+           placeholder="npr. 29.00">
+    <div class="form-text">Koristi se za MRR dashboard (ne mora biti 1:1 sa Stripe cijenom).</div>
+    @error('monthly_price')<div class="invalid-feedback">{{ $message }}</div>@enderror
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Stripe Product ID</label>
+    <input type="text" name="stripe_product_id" class="form-control @error('stripe_product_id') is-invalid @enderror"
+           value="{{ old('stripe_product_id', $plan->stripe_product_id ?? '') }}" placeholder="prod_...">
+    @error('stripe_product_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Stripe Price ID</label>
+    <input type="text" name="stripe_price_id" class="form-control @error('stripe_price_id') is-invalid @enderror"
+           value="{{ old('stripe_price_id', $plan->stripe_price_id ?? '') }}" placeholder="price_...">
+    <div class="form-text">Mapiranje paketa na Stripe cijenu (npr. price_123 za Standardni).</div>
+    @error('stripe_price_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+</div>

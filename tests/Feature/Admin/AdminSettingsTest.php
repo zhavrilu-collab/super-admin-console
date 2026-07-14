@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\Application;
 use App\Models\User;
 use App\Services\Admin\ConsoleSettingsService;
+use App\Services\Billing\StripeBillingService;
 use App\Support\AdminSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -26,7 +27,8 @@ class AdminSettingsTest extends TestCase
             ->get(route('admin.settings.index'))
             ->assertOk()
             ->assertSee('Postavke konzole')
-            ->assertSee('E-mail (SMTP)');
+            ->assertSee('E-mail (SMTP)')
+            ->assertSee('Stripe naplata');
 
         $this->actingAs($user)
             ->withSession([AdminSession::ACTIVE_APP_ID => 1])
@@ -49,5 +51,29 @@ class AdminSettingsTest extends TestCase
         $this->assertSame('smtp.example.com', $settings->get(ConsoleSettingsService::MAIL_HOST));
         $this->assertSame('secret-pass', $settings->get(ConsoleSettingsService::MAIL_PASSWORD));
         $this->assertSame('wh-secret', $settings->webhookSecret());
+    }
+
+    public function test_super_admin_can_update_stripe_settings(): void
+    {
+        $user = User::factory()->superAdmin()->create();
+
+        $this->actingAs($user)
+            ->withSession([AdminSession::ACTIVE_APP_ID => 1])
+            ->patch(route('admin.settings.mail'), [
+                'mail_mailer' => 'log',
+                'mail_from_address' => 'noreply@example.com',
+                'mail_from_name' => 'Admin',
+                'stripe_publishable_key' => 'pk_test_abc',
+                'stripe_secret_key' => 'sk_test_xyz',
+                'stripe_webhook_secret' => 'whsec_test',
+            ])
+            ->assertRedirect(route('admin.settings.index'));
+
+        $settings = app(ConsoleSettingsService::class);
+
+        $this->assertSame('pk_test_abc', $settings->get(ConsoleSettingsService::STRIPE_PUBLISHABLE_KEY));
+        $this->assertSame('sk_test_xyz', $settings->get(ConsoleSettingsService::STRIPE_SECRET_KEY));
+        $this->assertSame('whsec_test', $settings->get(ConsoleSettingsService::STRIPE_WEBHOOK_SECRET));
+        $this->assertTrue(app(StripeBillingService::class)->isConfigured());
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateConsoleMailSettingsRequest;
 use App\Services\Admin\ConsoleSettingsService;
+use App\Services\Billing\StripeBillingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -12,14 +13,19 @@ class AdminSettingsController extends Controller
 {
     public function __construct(
         private readonly ConsoleSettingsService $consoleSettings,
+        private readonly StripeBillingService $stripeBilling,
     ) {}
 
     public function index(): View
     {
         return view('admin.settings.index', [
             'mail' => $this->consoleSettings->mailSettingsForForm(),
+            'billing' => $this->consoleSettings->billingSettingsForForm(),
             'hasMailPassword' => $this->consoleSettings->get(ConsoleSettingsService::MAIL_PASSWORD) !== null,
             'hasWebhookSecret' => $this->consoleSettings->webhookSecret() !== null,
+            'hasStripeSecretKey' => $this->consoleSettings->get(ConsoleSettingsService::STRIPE_SECRET_KEY) !== null,
+            'hasStripeWebhookSecret' => $this->consoleSettings->get(ConsoleSettingsService::STRIPE_WEBHOOK_SECRET) !== null,
+            'stripeConfigured' => $this->stripeBilling->isConfigured(),
         ]);
     }
 
@@ -41,6 +47,18 @@ class AdminSettingsController extends Controller
 
         if (! empty($data['webhook_secret'])) {
             $this->consoleSettings->set(ConsoleSettingsService::WEBHOOK_SECRET, $data['webhook_secret']);
+        }
+
+        if (! empty($data['stripe_publishable_key'])) {
+            $this->consoleSettings->set(ConsoleSettingsService::STRIPE_PUBLISHABLE_KEY, $data['stripe_publishable_key']);
+        }
+
+        if (! empty($data['stripe_secret_key'])) {
+            $this->consoleSettings->set(ConsoleSettingsService::STRIPE_SECRET_KEY, $data['stripe_secret_key']);
+        }
+
+        if (! empty($data['stripe_webhook_secret'])) {
+            $this->consoleSettings->set(ConsoleSettingsService::STRIPE_WEBHOOK_SECRET, $data['stripe_webhook_secret']);
         }
 
         $this->consoleSettings->applyMailConfiguration();

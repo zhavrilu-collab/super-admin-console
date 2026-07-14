@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AuditAction;
+use App\Enums\DunningResolution;
 use App\Enums\TenantStatus;
 use App\Models\SubscriptionPlan;
 use Illuminate\Database\Eloquent\Model;
@@ -84,6 +85,25 @@ class AuditLog extends Model
             ),
             AuditAction::ImpersonationEnded => sprintf(
                 'Support izlaz: %s',
+                $tenantName,
+            ),
+            AuditAction::BillingDunningOpened => sprintf(
+                'Neuspjela uplata: %s',
+                $tenantName,
+            ),
+            AuditAction::BillingDunningReminderSent => sprintf(
+                'Podsjetnik (%s. dan): %s',
+                $this->properties['reminder_day'] ?? '?',
+                $tenantName,
+            ),
+            AuditAction::BillingDunningSuspended => sprintf(
+                'Auto-suspend: %s',
+                $tenantName,
+            ),
+            AuditAction::BillingDunningResolved => sprintf(
+                'Dunning riješen (%s): %s',
+                DunningResolution::tryFrom((string) ($this->properties['resolution'] ?? ''))?->label()
+                    ?? ($this->properties['resolution'] ?? '—'),
                 $tenantName,
             ),
         };

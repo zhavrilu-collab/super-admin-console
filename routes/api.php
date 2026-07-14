@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\PlatformAuthController;
+use App\Http\Controllers\Api\PlatformBillingController;
 use App\Http\Controllers\Api\PlatformImpersonationController;
 use App\Http\Controllers\Api\PlatformInviteController;
 use App\Http\Controllers\Api\PlatformUserImportController;
 use App\Http\Controllers\Api\PlatformWorkspaceController;
 use App\Http\Controllers\Api\Sync\SubscriptionPlanSyncController;
+use App\Http\Controllers\Api\Webhooks\StripeWebhookController;
 use App\Http\Controllers\Api\Webhooks\TenantWebhookController;
 use App\Http\Middleware\AuthenticatePlatformToken;
 use App\Http\Middleware\VerifySaasWebhookSecret;
@@ -47,6 +49,10 @@ Route::middleware('throttle:platform-auth')
         Route::post('{token}/end', [PlatformImpersonationController::class, 'end'])->name('end');
     });
 
+Route::middleware('throttle:webhooks')
+    ->post('webhooks/stripe', [StripeWebhookController::class, 'handle'])
+    ->name('api.webhooks.stripe');
+
 Route::middleware([VerifySaasWebhookSecret::class, 'throttle:webhooks'])
     ->prefix('platform')
     ->name('api.platform.')
@@ -62,6 +68,12 @@ Route::middleware([VerifySaasWebhookSecret::class, 'throttle:webhooks'])
 
         Route::post('memberships/sync', [PlatformWorkspaceController::class, 'sync'])
             ->name('memberships.sync');
+
+        Route::post('billing/checkout', [PlatformBillingController::class, 'checkout'])
+            ->name('billing.checkout');
+
+        Route::post('billing/portal', [PlatformBillingController::class, 'portal'])
+            ->name('billing.portal');
     });
 
 Route::middleware([VerifySaasWebhookSecret::class, 'throttle:webhooks'])

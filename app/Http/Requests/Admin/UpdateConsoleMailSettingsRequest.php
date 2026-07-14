@@ -27,6 +27,9 @@ class UpdateConsoleMailSettingsRequest extends FormRequest
             'mail_from_address' => ['required', 'email', 'max:255'],
             'mail_from_name' => ['required', 'string', 'max:255'],
             'webhook_secret' => ['nullable', 'string', 'max:255'],
+            'stripe_publishable_key' => ['nullable', 'string', 'max:255'],
+            'stripe_secret_key' => ['nullable', 'string', 'max:255'],
+            'stripe_webhook_secret' => ['nullable', 'string', 'max:255'],
         ];
     }
 }
