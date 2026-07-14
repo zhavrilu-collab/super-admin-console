@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Auth\PlatformAuthController;
+use App\Http\Controllers\Api\PlatformGdprExportController;
 use App\Http\Controllers\Api\PlatformBillingController;
 use App\Http\Controllers\Api\PlatformCustomerWebhookController;
 use App\Http\Controllers\Api\PlatformImpersonationController;
@@ -24,6 +25,8 @@ Route::middleware('throttle:platform-auth')
             ->group(function () {
                 Route::get('me', [PlatformAuthController::class, 'me'])->name('me');
                 Route::post('logout', [PlatformAuthController::class, 'logout'])->name('logout');
+                Route::get('data-export', [PlatformGdprExportController::class, 'export'])
+                    ->name('data-export');
             });
     });
 

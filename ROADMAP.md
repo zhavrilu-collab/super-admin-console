@@ -65,7 +65,7 @@ flowchart TB
 | Jedinstveni IdP | ❌ | Odvojeni login u konzoli i modulu |
 | Global billing | ✅ | Stripe, dunning, self-service, MRR |
 | Tenant audit | ❌ | Schema u modulu, nema pisanja |
-| SSO / GDPR | ❌ | Nema |
+| SSO / GDPR | ⚠️ | GDPR export (D-S3); SSO u tijeku |
 | Impersonation / feature flags | ❌ | Nema |
 | SaaS metrike (MRR/Churn) | ❌ | Samo brojanje tenanata |
 
@@ -229,7 +229,7 @@ flowchart TB
 
 | ID | Task | Opis | Prioritet |
 |----|------|------|-----------|
-| D2.1 | Data export (JSON/CSV) | User + org podaci na zahtjev | P1 |
+| D2.1 | Data export (JSON/CSV) | User + org podaci na zahtjev | P1 | ✅ (D-S3) |
 | D2.2 | Right to erasure | Workflow brisanja s grace periodom | P1 |
 | D2.3 | Consent & privacy policy | Verzionirani consent u Core | P2 |
 | D2.4 | Session management UI | Aktivni uređaji, odjava svih | P2 |
@@ -259,7 +259,7 @@ flowchart TB
 |--------|-------|--------------|
 | D-S1 | D3.1 | Customer webhooks (subscribe, dispatch, HMAC) | ✅ |
 | D-S2 | D1.1 | Google OAuth (Socialite) | ✅ |
-| D-S3 | D2.1 | GDPR data export | |
+| D-S3 | D2.1 | GDPR data export | ✅ |
 | D-S4 | D1.2, D3.2 | Microsoft OIDC + API v1 | |
 | D-S5 | D2.2, D4.1 | Erasure workflow + super-admin CRUD | |
 
