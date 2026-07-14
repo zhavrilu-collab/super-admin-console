@@ -6,6 +6,7 @@ use App\Enums\AuditAction;
 use App\Enums\TenantStatus;
 use App\Models\SubscriptionPlan;
 use App\Models\AuditLog;
+use App\Models\ImpersonationSession;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -50,6 +51,43 @@ class AuditLogService
                 'tenant_slug' => $tenant->slug,
                 'from' => $from,
                 'to' => $to,
+            ],
+        ]);
+    }
+
+    public function logImpersonationStarted(ImpersonationSession $session): AuditLog
+    {
+        $session->loadMissing(['admin', 'tenant']);
+
+        return AuditLog::query()->create([
+            'user_id' => $session->user_id,
+            'application_id' => $session->application_id,
+            'action' => AuditAction::ImpersonationStarted,
+            'subject_type' => Tenant::class,
+            'subject_id' => $session->tenant_id,
+            'properties' => [
+                'tenant_name' => $session->tenant->name,
+                'tenant_slug' => $session->tenant->slug,
+                'reason' => $session->reason,
+                'session_id' => $session->id,
+            ],
+        ]);
+    }
+
+    public function logImpersonationEnded(ImpersonationSession $session): AuditLog
+    {
+        $session->loadMissing(['admin', 'tenant']);
+
+        return AuditLog::query()->create([
+            'user_id' => $session->user_id,
+            'application_id' => $session->application_id,
+            'action' => AuditAction::ImpersonationEnded,
+            'subject_type' => Tenant::class,
+            'subject_id' => $session->tenant_id,
+            'properties' => [
+                'tenant_name' => $session->tenant->name,
+                'tenant_slug' => $session->tenant->slug,
+                'session_id' => $session->id,
             ],
         ]);
     }

@@ -54,5 +54,14 @@
         @if(collect($subscriptionPlans ?? [])->where(fn ($plan) => $plan->slug !== $tenant->plan)->isEmpty())
             <li><span class="dropdown-item-text text-muted small">Već na aktivnom paketu</span></li>
         @endif
+        @if($tenant->status === \App\Enums\TenantStatus::Active && $tenant->application?->api_base_url)
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form method="POST" action="{{ route('admin.tenants.impersonate', $tenant) }}" class="js-confirm-action" data-confirm="Ući u tenant {{ $tenant->name }} kao support?">
+                    @csrf
+                    <button type="submit" class="dropdown-item">Uđi kao tenant</button>
+                </form>
+            </li>
+        @endif
     </ul>
 </div>

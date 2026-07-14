@@ -75,6 +75,17 @@ class AuditLog extends Model
                 $this->planLabelFromAuditProperty('from'),
                 $this->planLabelFromAuditProperty('to'),
             ),
+            AuditAction::ImpersonationStarted => sprintf(
+                'Support ulaz: %s%s',
+                $tenantName,
+                isset($this->properties['reason']) && $this->properties['reason'] !== ''
+                    ? ' ('.$this->properties['reason'].')'
+                    : '',
+            ),
+            AuditAction::ImpersonationEnded => sprintf(
+                'Support izlaz: %s',
+                $tenantName,
+            ),
         };
     }
 

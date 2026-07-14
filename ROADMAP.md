@@ -149,8 +149,8 @@ flowchart TB
 
 | Sprint | Fokus | Deliverables |
 |--------|-------|--------------|
-| B-S1 | B1.1, B1.2, B1.4 | Core users + JWT; migracija usera |
-| B-S2 | B1.3, B1.5 | Unified login; tenant MFA (opcionalno) |
+| B-S1 | B1.1, B1.2, B1.4 | Core users + JWT; migracija usera | ✅ Gotovo |
+| B-S2 | B1.3, B1.5 | Unified login; tenant MFA (opcionalno) | 🟡 U tijeku |
 | B-S3 | B2.1, B2.2, B2.3 | Invite flow end-to-end |
 | B-S4 | B2.4, B2.5, B3.1–B3.2 | Workspace API; audit pisanje |
 | B-S5 | B3.3, B4.* | Audit UI; impersonation |

@@ -80,5 +80,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('admin-moderation', function (Request $request) {
             return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
         });
+
+        RateLimiter::for('platform-auth', function (Request $request) {
+            return Limit::perMinute(20)->by($request->ip());
+        });
     }
 }

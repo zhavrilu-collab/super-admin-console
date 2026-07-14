@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminSubscriptionPlanController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Admin\AdminSyncController;
+use App\Http\Controllers\Admin\AdminTenantImpersonationController;
 use App\Http\Controllers\Admin\AdminTenantController;
 use App\Http\Controllers\Admin\AdminTwoFactorController;
 use App\Http\Controllers\ProfileController;
@@ -50,6 +51,9 @@ Route::middleware(['auth', 'admin', 'require-super-admin-2fa'])
         Route::patch('/tenants/{tenant}/plan', [AdminTenantController::class, 'updatePlan'])
             ->middleware('throttle:admin-moderation')
             ->name('tenants.update-plan');
+        Route::post('/tenants/{tenant}/impersonate', [AdminTenantImpersonationController::class, 'store'])
+            ->middleware('throttle:admin-moderation')
+            ->name('tenants.impersonate');
 
         Route::get('/postavke', [AdminSettingsController::class, 'index'])->name('settings.index');
         Route::patch('/postavke/mail', [AdminSettingsController::class, 'updateMail'])->name('settings.mail');

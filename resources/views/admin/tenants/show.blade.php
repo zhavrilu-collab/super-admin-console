@@ -88,10 +88,16 @@
             </div>
             <div class="card-body">
                 @if($saasUrl)
-                    <p class="mb-2">
+                    <p class="mb-2 d-flex flex-wrap gap-2">
                         <a href="{{ $saasUrl }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">
                             Otvori u SaaS aplikaciji
                         </a>
+                        @if($tenant->status === \App\Enums\TenantStatus::Active)
+                            <form method="POST" action="{{ route('admin.tenants.impersonate', $tenant) }}" class="js-confirm-action d-inline" data-confirm="Ući u tenant {{ $tenant->name }} kao support?">
+                                @csrf
+                                <button type="submit" class="btn btn-warning btn-sm">Uđi kao tenant</button>
+                            </form>
+                        @endif
                     </p>
                     <p class="small text-muted mb-0">
                         <code>{{ $saasUrl }}</code>
