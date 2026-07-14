@@ -26,4 +26,6 @@ return [
     */
     'google_oauth_enabled' => (bool) env('GOOGLE_OAUTH_ENABLED', false),
 
+    'microsoft_oauth_enabled' => (bool) env('MICROSOFT_OAUTH_ENABLED', false),
+
 ];

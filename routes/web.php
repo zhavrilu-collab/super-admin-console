@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminAppController;
 use App\Http\Controllers\Admin\AdminBillingDashboardController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminSuperAdminController;
 use App\Http\Controllers\Admin\AdminSubscriptionPlanController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Admin\AdminSyncController;
@@ -21,6 +22,12 @@ Route::middleware('throttle:platform-auth')->group(function () {
 
     Route::get('/auth/google/callback', [PlatformOAuthController::class, 'handleGoogleCallback'])
         ->name('auth.google.callback');
+
+    Route::get('/auth/microsoft/redirect', [PlatformOAuthController::class, 'redirectToMicrosoft'])
+        ->name('auth.microsoft.redirect');
+
+    Route::get('/auth/microsoft/callback', [PlatformOAuthController::class, 'handleMicrosoftCallback'])
+        ->name('auth.microsoft.callback');
 });
 
 Route::get('/', function () {
@@ -77,6 +84,11 @@ Route::middleware(['auth', 'admin', 'require-super-admin-2fa'])
         Route::resource('paketi', AdminSubscriptionPlanController::class)
             ->parameters(['paketi' => 'subscriptionPlan'])
             ->names('subscription-plans')
+            ->except(['show']);
+
+        Route::resource('super-admini', AdminSuperAdminController::class)
+            ->parameters(['super-admini' => 'superAdmin'])
+            ->names('super-admins')
             ->except(['show']);
     });
 

@@ -83,6 +83,14 @@ class User extends Authenticatable
         return $this->hasMany(OAuthIdentity::class);
     }
 
+    /**
+     * @return HasMany<AccountDeletionRequest, $this>
+     */
+    public function accountDeletionRequests(): HasMany
+    {
+        return $this->hasMany(AccountDeletionRequest::class);
+    }
+
     public function isPlatformUser(): bool
     {
         return ! $this->isSuperAdmin();

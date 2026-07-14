@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\OAuthProvider;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Services\Identity\PlatformOAuthService;
@@ -19,8 +20,28 @@ class PlatformOAuthController extends Controller
 
     public function redirectToGoogle(Request $request): RedirectResponse
     {
-        if (! $this->platformOAuth->isGoogleConfigured()) {
-            abort(503, 'Google prijava nije konfigurirana.');
+        return $this->redirectToProvider($request, OAuthProvider::Google);
+    }
+
+    public function handleGoogleCallback(Request $request): RedirectResponse
+    {
+        return $this->handleProviderCallback($request, OAuthProvider::Google);
+    }
+
+    public function redirectToMicrosoft(Request $request): RedirectResponse
+    {
+        return $this->redirectToProvider($request, OAuthProvider::Microsoft);
+    }
+
+    public function handleMicrosoftCallback(Request $request): RedirectResponse
+    {
+        return $this->handleProviderCallback($request, OAuthProvider::Microsoft);
+    }
+
+    private function redirectToProvider(Request $request, OAuthProvider $provider): RedirectResponse
+    {
+        if (! $this->providerConfigured($provider)) {
+            abort(503, $provider->label().' prijava nije konfigurirana.');
         }
 
         $validated = $request->validate([
@@ -36,39 +57,51 @@ class PlatformOAuthController extends Controller
 
         $request->session()->put('platform_oauth.application_slug', $application->slug);
         $request->session()->put('platform_oauth.return_url', $validated['return_url']);
+        $request->session()->put('platform_oauth.provider', $provider->value);
 
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver($provider->value)->redirect();
     }
 
-    public function handleGoogleCallback(Request $request): RedirectResponse
+    private function handleProviderCallback(Request $request, OAuthProvider $provider): RedirectResponse
     {
-        if (! $this->platformOAuth->isGoogleConfigured()) {
-            abort(503, 'Google prijava nije konfigurirana.');
+        if (! $this->providerConfigured($provider)) {
+            abort(503, $provider->label().' prijava nije konfigurirana.');
         }
 
         $returnUrl = $request->session()->pull('platform_oauth.return_url');
-        $request->session()->forget('platform_oauth.application_slug');
+        $request->session()->forget(['platform_oauth.application_slug', 'platform_oauth.provider']);
 
         if (! is_string($returnUrl) || $returnUrl === '') {
             abort(400, 'OAuth sesija je istekla. Pokušajte ponovno.');
         }
 
         try {
-            $googleUser = Socialite::driver('google')->user();
-            $auth = $this->platformOAuth->loginFromGoogle($googleUser);
+            $oauthUser = Socialite::driver($provider->value)->user();
+            $auth = match ($provider) {
+                OAuthProvider::Google => $this->platformOAuth->loginFromGoogle($oauthUser),
+                OAuthProvider::Microsoft => $this->platformOAuth->loginFromMicrosoft($oauthUser),
+            };
         } catch (ValidationException $exception) {
             return $this->redirectWithError($returnUrl, (string) collect($exception->errors())->flatten()->first());
         } catch (\Throwable $exception) {
-            Log::warning('Google OAuth callback failed.', [
+            Log::warning($provider->label().' OAuth callback failed.', [
                 'message' => $exception->getMessage(),
             ]);
 
-            return $this->redirectWithError($returnUrl, 'Google prijava nije uspjela. Pokušajte ponovno.');
+            return $this->redirectWithError($returnUrl, $provider->label().' prijava nije uspjela. Pokušajte ponovno.');
         }
 
         return redirect()->away($this->appendQuery($returnUrl, [
             'token' => $auth['token'],
         ]));
+    }
+
+    private function providerConfigured(OAuthProvider $provider): bool
+    {
+        return match ($provider) {
+            OAuthProvider::Google => $this->platformOAuth->isGoogleConfigured(),
+            OAuthProvider::Microsoft => $this->platformOAuth->isMicrosoftConfigured(),
+        };
     }
 
     /**

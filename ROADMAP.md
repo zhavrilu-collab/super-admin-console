@@ -221,7 +221,7 @@ flowchart TB
 | ID | Task | Opis | Prioritet |
 |----|------|------|-----------|
 | D1.1 | Google OAuth | Laravel Socialite | P1 | ✅ (D-S2) |
-| D1.2 | Microsoft 365 / Azure AD | OIDC | P1 |
+| D1.2 | Microsoft 365 / Azure AD | OIDC | P1 | ✅ (D-S4) |
 | D1.3 | Apple Sign In | P2 |
 | D1.4 | SSO po organizaciji | Enforce SSO za odabrane tenant-e | P2 |
 
@@ -230,7 +230,7 @@ flowchart TB
 | ID | Task | Opis | Prioritet |
 |----|------|------|-----------|
 | D2.1 | Data export (JSON/CSV) | User + org podaci na zahtjev | P1 | ✅ (D-S3) |
-| D2.2 | Right to erasure | Workflow brisanja s grace periodom | P1 |
+| D2.2 | Right to erasure | Workflow brisanja s grace periodom | P1 | ✅ (D-S5) |
 | D2.3 | Consent & privacy policy | Verzionirani consent u Core | P2 |
 | D2.4 | Session management UI | Aktivni uređaji, odjava svih | P2 |
 
@@ -239,7 +239,7 @@ flowchart TB
 | ID | Task | Opis | Prioritet |
 |----|------|------|-----------|
 | D3.1 | Customer webhooks | Tenant registrira URL; eventi `member.created`, `invoice.paid` | P1 | ✅ (D-S1) |
-| D3.2 | API Gateway / versioning | `/api/v1/...`, OpenAPI spec | P1 |
+| D3.2 | API Gateway / versioning | `/api/v1/...`, OpenAPI spec | P1 | ✅ (D-S4) |
 | D3.3 | Feature flags | Runtime toggles po tenant/user (beta) | P2 |
 | D3.4 | Sentry / error tracking | Backend + frontend | P1 |
 | D3.5 | Status page | Javni uptime + incident history | P2 |
@@ -249,7 +249,7 @@ flowchart TB
 
 | ID | Task | Opis | Prioritet |
 |----|------|------|-----------|
-| D4.1 | Upravljanje super-admin korisnicima | CRUD, dodjela uloga | P1 |
+| D4.1 | Upravljanje super-admin korisnicima | CRUD, dodjela uloga | P1 | ✅ (D-S5) |
 | D4.2 | Prošireni audit | App CRUD, settings, 2FA promjene | P2 |
 | D4.3 | Vođeni onboarding (modul) | Interaktivni tour prve prijave | P2 |
 
@@ -260,8 +260,8 @@ flowchart TB
 | D-S1 | D3.1 | Customer webhooks (subscribe, dispatch, HMAC) | ✅ |
 | D-S2 | D1.1 | Google OAuth (Socialite) | ✅ |
 | D-S3 | D2.1 | GDPR data export | ✅ |
-| D-S4 | D1.2, D3.2 | Microsoft OIDC + API v1 | |
-| D-S5 | D2.2, D4.1 | Erasure workflow + super-admin CRUD | |
+| D-S4 | D1.2, D3.2 | Microsoft OIDC + API v1 | ✅ |
+| D-S5 | D2.2, D4.1 | Erasure workflow + super-admin CRUD | ✅ |
 
 ---
 

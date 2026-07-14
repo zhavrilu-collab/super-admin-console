@@ -20,6 +20,12 @@ Schedule::command('billing:process-dunning')
     ->onOneServer()
     ->appendOutputTo(storage_path('logs/billing-dunning.log'));
 
+Schedule::command('gdpr:process-account-deletions')
+    ->dailyAt('03:30')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/gdpr-erasure.log'));
+
 Schedule::command('queue:work --stop-when-empty --max-time=55')
     ->everyMinute()
     ->withoutOverlapping()

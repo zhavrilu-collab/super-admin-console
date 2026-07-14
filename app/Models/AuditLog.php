@@ -106,6 +106,30 @@ class AuditLog extends Model
                     ?? ($this->properties['resolution'] ?? '—'),
                 $tenantName,
             ),
+            AuditAction::AccountDeletionRequested => sprintf(
+                'GDPR brisanje zakazano: %s',
+                $this->properties['email'] ?? 'korisnik',
+            ),
+            AuditAction::AccountDeletionCancelled => sprintf(
+                'GDPR brisanje otkazano: %s',
+                $this->properties['email'] ?? 'korisnik',
+            ),
+            AuditAction::AccountDeletionCompleted => sprintf(
+                'GDPR brisanje izvršeno: %s',
+                $this->properties['email'] ?? 'korisnik',
+            ),
+            AuditAction::SuperAdminCreated => sprintf(
+                'Super-admin kreiran: %s',
+                $this->properties['email'] ?? '—',
+            ),
+            AuditAction::SuperAdminUpdated => sprintf(
+                'Super-admin ažuriran: %s',
+                $this->properties['email'] ?? '—',
+            ),
+            AuditAction::SuperAdminDeleted => sprintf(
+                'Super-admin obrisan: %s',
+                $this->properties['email'] ?? '—',
+            ),
         };
     }
 

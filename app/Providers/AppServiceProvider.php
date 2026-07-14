@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Application;
 use App\Services\Admin\ConsoleSettingsService;
 use App\Services\Admin\SubscriptionPlanService;
+use App\Socialite\MicrosoftProvider;
 use App\Support\AdminSession;
 use App\Support\TwoFactorSession;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Socialite\Facades\Socialite;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrapFive();
         $this->configureRateLimiting();
         $this->configureProductionSecurity();
+        $this->configureSocialiteProviders();
 
         if (Schema::hasTable('settings')) {
             app(ConsoleSettingsService::class)->applyMailConfiguration();
@@ -51,6 +54,16 @@ class AppServiceProvider extends ServiceProvider
                     ? app(SubscriptionPlanService::class)->forApplication($activeApplication->id)
                     : collect(),
             ]);
+        });
+    }
+
+    private function configureSocialiteProviders(): void
+    {
+        Socialite::extend('microsoft', function ($app) {
+            return Socialite::buildProvider(
+                MicrosoftProvider::class,
+                $app['config']['services.microsoft'],
+            );
         });
     }
 

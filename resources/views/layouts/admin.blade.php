@@ -45,6 +45,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('admin.super-admins.*')) active @endif" href="{{ route('admin.super-admins.index') }}">
+                        Super-admini
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link @if(request()->routeIs('admin.two-factor.*')) active @endif" href="{{ route('admin.two-factor.index') }}">
                         Sigurnost
                     </a>

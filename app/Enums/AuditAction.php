@@ -12,6 +12,12 @@ enum AuditAction: string
     case BillingDunningReminderSent = 'billing.dunning_reminder_sent';
     case BillingDunningSuspended = 'billing.dunning_suspended';
     case BillingDunningResolved = 'billing.dunning_resolved';
+    case AccountDeletionRequested = 'account.deletion_requested';
+    case AccountDeletionCancelled = 'account.deletion_cancelled';
+    case AccountDeletionCompleted = 'account.deletion_completed';
+    case SuperAdminCreated = 'super_admin.created';
+    case SuperAdminUpdated = 'super_admin.updated';
+    case SuperAdminDeleted = 'super_admin.deleted';
 
     public function label(): string
     {
@@ -24,6 +30,12 @@ enum AuditAction: string
             self::BillingDunningReminderSent => 'Dunning podsjetnik poslan',
             self::BillingDunningSuspended => 'Auto-suspend (dunning)',
             self::BillingDunningResolved => 'Dunning riješen',
+            self::AccountDeletionRequested => 'GDPR brisanje računa',
+            self::AccountDeletionCancelled => 'GDPR brisanje otkazano',
+            self::AccountDeletionCompleted => 'GDPR brisanje izvršeno',
+            self::SuperAdminCreated => 'Super-admin kreiran',
+            self::SuperAdminUpdated => 'Super-admin ažuriran',
+            self::SuperAdminDeleted => 'Super-admin obrisan',
         };
     }
 }
