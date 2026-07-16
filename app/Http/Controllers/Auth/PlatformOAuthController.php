@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Auth;
 use App\Enums\OAuthProvider;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
+use App\Services\Identity\PlatformAuthService;
 use App\Services\Identity\PlatformOAuthService;
+use App\Support\PlatformLoginSession;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +18,7 @@ class PlatformOAuthController extends Controller
 {
     public function __construct(
         private readonly PlatformOAuthService $platformOAuth,
+        private readonly PlatformAuthService $platformAuth,
     ) {}
 
     public function redirectToGoogle(Request $request): RedirectResponse
@@ -45,19 +48,40 @@ class PlatformOAuthController extends Controller
         }
 
         $validated = $request->validate([
-            'application_slug' => ['required', 'string', 'max:100'],
+            'application_slug' => [$request->boolean('platform_login') ? 'nullable' : 'required', 'string', 'max:100'],
             'return_url' => ['required', 'url', 'max:2048'],
+            'platform_login' => ['sometimes', 'boolean'],
         ]);
 
-        $application = Application::query()
-            ->where('slug', $validated['application_slug'])
-            ->firstOrFail();
+        $application = null;
 
-        $this->platformOAuth->validateReturnUrl($application, $validated['return_url']);
+        if (filled($validated['application_slug'] ?? null)) {
+            $application = Application::query()
+                ->where('slug', $validated['application_slug'])
+                ->firstOrFail();
+        } elseif (! $request->boolean('platform_login')) {
+            abort(422, 'application_slug je obavezan.');
+        } else {
+            $application = Application::query()->orderBy('id')->firstOrFail();
+        }
+
+        if ($request->boolean('platform_login')) {
+            $this->platformOAuth->validatePlatformLoginReturnUrl($validated['return_url']);
+        } else {
+            $this->platformOAuth->validateReturnUrl($application, $validated['return_url']);
+        }
 
         $request->session()->put('platform_oauth.application_slug', $application->slug);
         $request->session()->put('platform_oauth.return_url', $validated['return_url']);
         $request->session()->put('platform_oauth.provider', $provider->value);
+
+        if ($request->boolean('platform_login')) {
+            $filterSlug = $request->string('application_slug')->toString();
+
+            if ($filterSlug !== '') {
+                $request->session()->put(PlatformLoginSession::APPLICATION_SLUG, $filterSlug);
+            }
+        }
 
         return Socialite::driver($provider->value)->redirect();
     }
@@ -78,8 +102,8 @@ class PlatformOAuthController extends Controller
         try {
             $oauthUser = Socialite::driver($provider->value)->user();
             $auth = match ($provider) {
-                OAuthProvider::Google => $this->platformOAuth->loginFromGoogle($oauthUser),
-                OAuthProvider::Microsoft => $this->platformOAuth->loginFromMicrosoft($oauthUser),
+                OAuthProvider::Google => $this->platformOAuth->authenticateFromProvider(OAuthProvider::Google, $oauthUser),
+                OAuthProvider::Microsoft => $this->platformOAuth->authenticateFromProvider(OAuthProvider::Microsoft, $oauthUser),
             };
         } catch (ValidationException $exception) {
             return $this->redirectWithError($returnUrl, (string) collect($exception->errors())->flatten()->first());
@@ -89,6 +113,18 @@ class PlatformOAuthController extends Controller
             ]);
 
             return $this->redirectWithError($returnUrl, $provider->label().' prijava nije uspjela. Pokušajte ponovno.');
+        }
+
+        if (($auth['two_factor_required'] ?? false) === true) {
+            /** @var \App\Models\User $user */
+            $user = $auth['user'];
+            $challengeToken = $this->platformAuth->createTwoFactorChallengeToken($user);
+
+            $request->session()->put(PlatformLoginSession::PENDING_USER_ID, $user->id);
+            $request->session()->put(PlatformLoginSession::PENDING_CHALLENGE_TOKEN, $challengeToken);
+            $request->session()->put(PlatformLoginSession::PENDING_RETURN_URL, $returnUrl);
+
+            return redirect()->route('platform.two-factor.login');
         }
 
         return redirect()->away($this->appendQuery($returnUrl, [

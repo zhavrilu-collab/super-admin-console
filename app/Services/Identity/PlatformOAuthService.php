@@ -44,6 +44,18 @@ class PlatformOAuthService
         }
     }
 
+    public function validatePlatformLoginReturnUrl(string $returnUrl): void
+    {
+        $platformBase = rtrim((string) config('app.url'), '/');
+        $normalizedReturn = rtrim($returnUrl, '/');
+
+        if ($normalizedReturn !== $platformBase && ! str_starts_with($normalizedReturn, $platformBase.'/')) {
+            throw ValidationException::withMessages([
+                'return_url' => ['Povratni URL mora pripadati platformi.'],
+            ]);
+        }
+    }
+
     /**
      * @return array{token: string, user: array<string, mixed>}
      */
@@ -65,6 +77,38 @@ class PlatformOAuthService
      */
     public function loginFromProvider(OAuthProvider $provider, SocialiteUser $oauthUser): array
     {
+        $user = $this->resolveUserFromProvider($provider, $oauthUser);
+
+        return [
+            'token' => PlatformAccessToken::issueFor($user, $provider->value.'-oauth'),
+            'user' => app(PlatformAuthService::class)->serializeUser($user),
+        ];
+    }
+
+    /**
+     * @return array{two_factor_required?: bool, user?: User, token?: string, user_payload?: array<string, mixed>}
+     */
+    public function authenticateFromProvider(OAuthProvider $provider, SocialiteUser $oauthUser): array
+    {
+        $user = $this->resolveUserFromProvider($provider, $oauthUser);
+
+        if ($user->hasTwoFactorEnabled()) {
+            return [
+                'two_factor_required' => true,
+                'user' => $user,
+            ];
+        }
+
+        $session = app(PlatformAuthService::class)->issueAuthenticatedSession($user, $provider->value.'-oauth');
+
+        return [
+            'token' => $session['token'],
+            'user_payload' => $session['user'],
+        ];
+    }
+
+    public function resolveUserFromProvider(OAuthProvider $provider, SocialiteUser $oauthUser): User
+    {
         if (! is_string($oauthUser->getId()) || $oauthUser->getId() === '') {
             throw ValidationException::withMessages([
                 $provider->value => [$provider->label().' račun nije valjan.'],
@@ -79,7 +123,7 @@ class PlatformOAuthService
             ]);
         }
 
-        $user = DB::transaction(function () use ($provider, $oauthUser, $email): User {
+        return DB::transaction(function () use ($provider, $oauthUser, $email): User {
             $identity = OAuthIdentity::query()
                 ->where('provider', $provider->value)
                 ->where('provider_id', $oauthUser->getId())
@@ -126,13 +170,6 @@ class PlatformOAuthService
 
             return $user->fresh();
         });
-
-        $token = PlatformAccessToken::issueFor($user, $provider->value.'-oauth');
-
-        return [
-            'token' => $token,
-            'user' => app(PlatformAuthService::class)->serializeUser($user),
-        ];
     }
 
     private function isProviderConfigured(OAuthProvider $provider): bool

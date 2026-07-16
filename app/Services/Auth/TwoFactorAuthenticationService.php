@@ -9,6 +9,7 @@ use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use PragmaRX\Google2FA\Google2FA;
 use RuntimeException;
@@ -91,10 +92,7 @@ class TwoFactorAuthenticationService
 
     public function disable(User $user, string $password, string $code): void
     {
-        if (! auth()->validate([
-            'email' => $user->email,
-            'password' => $password,
-        ])) {
+        if (! Hash::check($password, $user->password)) {
             throw new RuntimeException('Lozinka nije ispravna.');
         }
 

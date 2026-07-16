@@ -29,11 +29,18 @@ Route::middleware('throttle:platform-auth')
     ->group(function () use ($routeNamePrefix) {
         Route::post('login', [PlatformAuthController::class, 'login'])->name('login');
         Route::post('register', [PlatformAuthController::class, 'register'])->name('register');
+        Route::post('two-factor', [PlatformAuthController::class, 'completeTwoFactor'])->name('two-factor');
 
         Route::middleware([AuthenticatePlatformToken::class])
             ->group(function () use ($routeNamePrefix) {
                 Route::get('me', [PlatformAuthController::class, 'me'])->name('me');
                 Route::post('logout', [PlatformAuthController::class, 'logout'])->name('logout');
+                Route::post('two-factor/begin', [PlatformAuthController::class, 'beginTwoFactor'])
+                    ->name('two-factor.begin');
+                Route::post('two-factor/confirm', [PlatformAuthController::class, 'confirmTwoFactor'])
+                    ->name('two-factor.confirm');
+                Route::delete('two-factor', [PlatformAuthController::class, 'disableTwoFactor'])
+                    ->name('two-factor.destroy');
                 Route::get('data-export', [PlatformGdprExportController::class, 'export'])
                     ->name('data-export');
                 Route::get('account-deletion', [PlatformAccountErasureController::class, 'show'])

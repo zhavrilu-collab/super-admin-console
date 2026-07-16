@@ -6,17 +6,40 @@ use App\Models\Application;
 use App\Models\PlatformAccessToken;
 use App\Models\PlatformUserLink;
 use App\Models\User;
+use App\Services\Auth\TwoFactorAuthenticationService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class PlatformAuthService
 {
+    private const TWO_FACTOR_CHALLENGE_TTL_SECONDS = 600;
+
+    public function __construct(
+        private readonly TwoFactorAuthenticationService $twoFactor,
+    ) {}
+
     /**
-     * @return array{token: string, user: array<string, mixed>}
+     * @return array{token?: string, user?: array<string, mixed>, two_factor_required?: bool, two_factor_token?: string}
      */
     public function login(string $email, string $password): array
+    {
+        $user = $this->authenticateCredentials($email, $password);
+
+        if ($user->hasTwoFactorEnabled()) {
+            return [
+                'two_factor_required' => true,
+                'two_factor_token' => $this->createTwoFactorChallengeToken($user),
+            ];
+        }
+
+        return $this->issueAuthenticatedSession($user);
+    }
+
+    public function authenticateCredentials(string $email, string $password): User
     {
         $user = User::query()->where('email', $email)->first();
 
@@ -32,12 +55,92 @@ class PlatformAuthService
             ]);
         }
 
-        $token = PlatformAccessToken::issueFor($user);
+        return $user;
+    }
 
+    /**
+     * @return array{token: string, user: array<string, mixed>}
+     */
+    public function issueAuthenticatedSession(User $user, string $tokenName = 'platform-access'): array
+    {
         return [
-            'token' => $token,
+            'token' => PlatformAccessToken::issueFor($user, $tokenName),
             'user' => $this->serializeUser($user),
         ];
+    }
+
+    public function createTwoFactorChallengeToken(User $user): string
+    {
+        $plainToken = Str::random(64);
+
+        Cache::put(
+            $this->twoFactorChallengeCacheKey($plainToken),
+            $user->id,
+            now()->addSeconds(self::TWO_FACTOR_CHALLENGE_TTL_SECONDS),
+        );
+
+        return $plainToken;
+    }
+
+    public function resolveTwoFactorChallengeUser(string $challengeToken): ?User
+    {
+        if ($challengeToken === '') {
+            return null;
+        }
+
+        $userId = Cache::get($this->twoFactorChallengeCacheKey($challengeToken));
+
+        if (! is_int($userId) && ! is_numeric($userId)) {
+            return null;
+        }
+
+        $user = User::query()->find((int) $userId);
+
+        if ($user === null || $user->isSuperAdmin() || ! $user->hasTwoFactorEnabled()) {
+            return null;
+        }
+
+        return $user;
+    }
+
+    /**
+     * @return array{token: string, user: array<string, mixed>}
+     */
+    public function completeTwoFactorChallenge(
+        string $challengeToken,
+        ?string $code = null,
+        ?string $recoveryCode = null,
+    ): array {
+        $user = $this->resolveTwoFactorChallengeUser($challengeToken);
+
+        if ($user === null) {
+            throw ValidationException::withMessages([
+                'code' => ['2FA sesija je istekla. Prijavite se ponovno.'],
+            ]);
+        }
+
+        $passed = false;
+
+        if (is_string($recoveryCode) && $recoveryCode !== '') {
+            $passed = $this->twoFactor->verifyRecoveryCode($user, $recoveryCode);
+        } elseif (is_string($code) && $code !== '') {
+            $passed = $this->twoFactor->verifyForUser($user, $code);
+        }
+
+        if (! $passed) {
+            throw ValidationException::withMessages([
+                'code' => ['Kôd nije ispravan.'],
+            ]);
+        }
+
+        Cache::forget($this->twoFactorChallengeCacheKey($challengeToken));
+
+        return $this->issueAuthenticatedSession($user);
+    }
+
+    private function twoFactorChallengeCacheKey(string $plainToken): string
+    {
+        return 'platform.2fa.challenge.'.hash('sha256', $plainToken);
     }
 
     /**
@@ -78,6 +181,7 @@ class PlatformAuthService
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'two_factor_enabled' => $user->hasTwoFactorEnabled(),
             'links' => $user->platformUserLinks->map(fn (PlatformUserLink $link) => [
                 'application_slug' => $link->application->slug,
                 'external_user_id' => $link->external_user_id,

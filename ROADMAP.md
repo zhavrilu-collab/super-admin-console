@@ -65,7 +65,7 @@ flowchart TB
 | Jedinstveni IdP | ❌ | Odvojeni login u konzoli i modulu |
 | Global billing | ✅ | Stripe, dunning, self-service, MRR |
 | Tenant audit | ❌ | Schema u modulu, nema pisanja |
-| SSO / GDPR | ⚠️ | GDPR export (D-S3); SSO u tijeku |
+| SSO / GDPR | ✅ | Google + Microsoft OAuth; GDPR export/erasure; org SSO enforce (D1.4) kasnije |
 | Impersonation / feature flags | ❌ | Nema |
 | SaaS metrike (MRR/Churn) | ❌ | Samo brojanje tenanata |
 
@@ -99,7 +99,7 @@ flowchart TB
 | B1.2 | JWT / session bridge | Modul validira token iz Core-a umjesto vlastitog `users` za platformu | P0 |
 | B1.3 | Unified login UI | Jedna prijava → redirect u aktivnu org/modul | P0 |
 | B1.4 | Migracija postojećih usera | Skripta: udruga-saas `users` → Core `users` + mapiranje | P0 |
-| B1.5 | MFA za tenant korisnike | Opcionalna TOTP u Core-u, enforce po aplikaciji/org | P1 |
+| B1.5 | MFA za tenant korisnike | Opcionalna TOTP u Core-u (✅); enforce po aplikaciji/org kasnije | P1 |
 
 **Acceptance criteria:**
 - Korisnik se prijavljuje jednom i pristupa udruga-saas bez drugog login ekrana
@@ -150,7 +150,7 @@ flowchart TB
 | Sprint | Fokus | Deliverables |
 |--------|-------|--------------|
 | B-S1 | B1.1, B1.2, B1.4 | Core users + JWT; migracija usera | ✅ Gotovo |
-| B-S2 | B1.3, B1.5 | Unified login; tenant MFA (opcionalno) | 🟡 U tijeku |
+| B-S2 | B1.3, B1.5 | Unified login; tenant MFA (opcionalno) | ✅ Unified login + tenant MFA |
 | B-S3 | B2.1, B2.2, B2.3 | Invite flow end-to-end |
 | B-S4 | B2.4, B2.5, B3.1–B3.2 | Workspace API; audit pisanje |
 | B-S5 | B3.3, B4.* | Audit UI; impersonation |
