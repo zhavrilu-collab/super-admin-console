@@ -150,6 +150,11 @@ ADMIN_SYNC_API_KEY=<zajednički ključ>
 ADMIN_CONSOLE_WEBHOOK_URL=https://admin.example.hr/api/webhooks/tenants/registered
 ADMIN_CONSOLE_WEBHOOK_SECRET=<zajednički webhook secret>
 ADMIN_CONSOLE_APPLICATION_SLUG=udruga-saas
+ADMIN_CONSOLE_API_URL=https://admin.example.hr
+
+# Same-VPS behind SSL-inspecting firewall / hairpin NAT:
+ADMIN_CONSOLE_HTTP_VERIFY=false
+ADMIN_CONSOLE_HTTP_RESOLVE_LOOPBACK=true
 ```
 
 ### Post-deploy
