@@ -25,8 +25,7 @@ abstract class AbstractSaasOrganizationSyncDriver implements TenantSyncDriver
     {
         $config = $this->configFor($application);
 
-        $response = Http::withToken($config['api_key'])
-            ->acceptJson()
+        $response = $this->http($config['api_key'], $config['base_url'])
             ->get(rtrim($config['base_url'], '/').'/api/admin/organizations')
             ->throw();
 
@@ -91,15 +90,42 @@ abstract class AbstractSaasOrganizationSyncDriver implements TenantSyncDriver
      */
     private function sendPatch(array $config, string $externalId, array $payload): void
     {
-        Http::withToken($config['api_key'])
-            ->acceptJson()
-            ->timeout(10)
-            ->connectTimeout(5)
+        $this->http($config['api_key'], $config['base_url'])
             ->patch(
                 rtrim($config['base_url'], '/').'/api/admin/organizations/'.$externalId,
                 $payload,
             )
             ->throw();
+    }
+
+    /**
+     * @return \Illuminate\Http\Client\PendingRequest
+     */
+    private function http(string $apiKey, ?string $baseUrl = null)
+    {
+        $request = Http::withToken($apiKey)
+            ->acceptJson()
+            ->timeout(10)
+            ->connectTimeout(5);
+
+        if (! config('saas_applications.http_verify', true)) {
+            $request = $request->withoutVerifying();
+        }
+
+        if (config('saas_applications.http_resolve_loopback', false) && is_string($baseUrl) && $baseUrl !== '') {
+            $host = parse_url($baseUrl, PHP_URL_HOST);
+            $port = parse_url($baseUrl, PHP_URL_PORT) ?: (str_starts_with($baseUrl, 'http://') ? 80 : 443);
+
+            if (is_string($host) && $host !== '' && $host !== '127.0.0.1' && $host !== 'localhost') {
+                $request = $request->withOptions([
+                    'curl' => [
+                        CURLOPT_RESOLVE => [sprintf('%s:%d:127.0.0.1', $host, (int) $port)],
+                    ],
+                ]);
+            }
+        }
+
+        return $request;
     }
 
     /**
@@ -157,10 +183,7 @@ abstract class AbstractSaasOrganizationSyncDriver implements TenantSyncDriver
         }
 
         try {
-            $response = Http::withToken($config['api_key'])
-                ->acceptJson()
-                ->timeout(10)
-                ->connectTimeout(5)
+            $response = $this->http($config['api_key'], $config['base_url'])
                 ->get(rtrim($config['base_url'], '/').'/api/admin/organizations')
                 ->throw();
         } catch (RequestException $exception) {

@@ -61,6 +61,23 @@ class AdminSettingsController extends Controller
             $this->consoleSettings->set(ConsoleSettingsService::STRIPE_WEBHOOK_SECRET, $data['stripe_webhook_secret']);
         }
 
+        $this->consoleSettings->set(
+            ConsoleSettingsService::BANK_TRANSFER_ENABLED,
+            ! empty($data['bank_transfer_enabled']) ? '1' : '0',
+        );
+        $this->consoleSettings->set(
+            ConsoleSettingsService::BANK_TRANSFER_IBAN,
+            isset($data['bank_transfer_iban']) ? preg_replace('/\s+/', '', (string) $data['bank_transfer_iban']) : null,
+        );
+        $this->consoleSettings->set(
+            ConsoleSettingsService::BANK_TRANSFER_RECIPIENT,
+            $data['bank_transfer_recipient'] ?? null,
+        );
+        $this->consoleSettings->set(
+            ConsoleSettingsService::BANK_TRANSFER_PAYMENT_DAYS,
+            isset($data['bank_transfer_payment_days']) ? (string) $data['bank_transfer_payment_days'] : null,
+        );
+
         $this->consoleSettings->applyMailConfiguration();
 
         return redirect()

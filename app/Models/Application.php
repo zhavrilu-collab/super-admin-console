@@ -34,6 +34,14 @@ class Application extends Model
     }
 
     /**
+     * @return HasMany<ApplicationFeature, $this>
+     */
+    public function features(): HasMany
+    {
+        return $this->hasMany(ApplicationFeature::class)->orderBy('sort_order');
+    }
+
+    /**
      * @return HasMany<SubscriptionPlan, $this>
      */
     public function subscriptionPlans(): HasMany

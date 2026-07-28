@@ -76,6 +76,14 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureRateLimiting(): void
     {
+        RateLimiter::for('stripe-webhooks', function (Request $request) {
+            if (app()->environment('local')) {
+                return Limit::perMinute(240)->by($request->ip());
+            }
+
+            return Limit::perMinute(60)->by($request->ip());
+        });
+
         RateLimiter::for('webhooks', function (Request $request) {
             return Limit::perMinute(30)->by($request->ip());
         });

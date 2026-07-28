@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminApplicationController;
+use App\Http\Controllers\Admin\AdminApplicationFeatureController;
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminAppController;
 use App\Http\Controllers\Admin\AdminBillingDashboardController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminStatsController;
 use App\Http\Controllers\Admin\AdminSuperAdminController;
 use App\Http\Controllers\Admin\AdminSubscriptionPlanController;
 use App\Http\Controllers\Admin\AdminSettingsController;
@@ -54,6 +56,7 @@ Route::middleware(['auth', 'admin', 'require-super-admin-2fa'])
     ->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/naplata', [AdminBillingDashboardController::class, 'index'])->name('billing.index');
+        Route::get('/statistika', [AdminStatsController::class, 'index'])->name('stats.index');
         Route::get('/audit-log', [AdminAuditLogController::class, 'index'])->name('audit.index');
         Route::post('/sync', [AdminSyncController::class, 'pull'])
             ->middleware('throttle:admin-sync')
@@ -69,6 +72,9 @@ Route::middleware(['auth', 'admin', 'require-super-admin-2fa'])
         Route::patch('/tenants/{tenant}/plan', [AdminTenantController::class, 'updatePlan'])
             ->middleware('throttle:admin-moderation')
             ->name('tenants.update-plan');
+        Route::patch('/tenants/{tenant}/sso', [AdminTenantController::class, 'updateSso'])
+            ->middleware('throttle:admin-moderation')
+            ->name('tenants.update-sso');
         Route::post('/tenants/{tenant}/impersonate', [AdminTenantImpersonationController::class, 'store'])
             ->middleware('throttle:admin-moderation')
             ->name('tenants.impersonate');
@@ -85,6 +91,29 @@ Route::middleware(['auth', 'admin', 'require-super-admin-2fa'])
             ->parameters(['paketi' => 'subscriptionPlan'])
             ->names('subscription-plans')
             ->except(['show']);
+
+        Route::post('/paketi/{subscriptionPlan}/sync-stripe', [AdminSubscriptionPlanController::class, 'syncStripe'])
+            ->middleware('throttle:admin-moderation')
+            ->name('subscription-plans.sync-stripe');
+
+        Route::post('/tenants/{tenant}/billing/checkout', [AdminTenantController::class, 'startBillingCheckout'])
+            ->middleware('throttle:admin-moderation')
+            ->name('tenants.billing.checkout');
+        Route::post('/tenants/{tenant}/billing/portal', [AdminTenantController::class, 'openBillingPortal'])
+            ->middleware('throttle:admin-moderation')
+            ->name('tenants.billing.portal');
+        Route::post('/tenants/{tenant}/billing/change-plan', [AdminTenantController::class, 'changeBillingPlan'])
+            ->middleware('throttle:admin-moderation')
+            ->name('tenants.billing.change-plan');
+
+        Route::get('/znacajke', [AdminApplicationFeatureController::class, 'index'])
+            ->name('application-features.index');
+        Route::post('/znacajke', [AdminApplicationFeatureController::class, 'store'])
+            ->name('application-features.store');
+        Route::patch('/znacajke/{applicationFeature}', [AdminApplicationFeatureController::class, 'update'])
+            ->name('application-features.update');
+        Route::delete('/znacajke/{applicationFeature}', [AdminApplicationFeatureController::class, 'destroy'])
+            ->name('application-features.destroy');
 
         Route::resource('super-admini', AdminSuperAdminController::class)
             ->parameters(['super-admini' => 'superAdmin'])

@@ -10,13 +10,17 @@ use Illuminate\Validation\ValidationException;
 
 class SubscriptionPlanService
 {
+    public function __construct(
+        private readonly ApplicationFeatureCatalogService $featureCatalog,
+    ) {}
+
     /**
      * @return Collection<int, SubscriptionPlan>
      */
     public function forApplication(?int $applicationId): Collection
     {
         if ($applicationId === null) {
-            return new Collection();
+            return new Collection;
         }
 
         return SubscriptionPlan::query()
@@ -85,112 +89,116 @@ class SubscriptionPlanService
         return $plan;
     }
 
+    /**
+     * @param  array<string, mixed>  $features
+     * @return array<string, mixed>
+     */
+    public function legacyColumnsFromFeatures(array $features): array
+    {
+        return [
+            'member_limit' => array_key_exists('member_limit', $features) && $features['member_limit'] !== null && $features['member_limit'] !== ''
+                ? (int) $features['member_limit']
+                : null,
+            'subdomain' => (bool) ($features['subdomain'] ?? false),
+            'custom_domain' => (bool) ($features['custom_domain'] ?? false),
+            'editable_sections' => (bool) ($features['editable_sections'] ?? false),
+            'cookie_banner' => (bool) ($features['cookie_banner'] ?? false),
+        ];
+    }
+
     public function seedDefaults(Application $application): void
     {
+        $this->featureCatalog->seedDefaults($application);
+
         $defaults = [
             [
                 'slug' => 'basic',
                 'name' => 'Osnovni',
-                'member_limit' => 50,
                 'badge_class' => 'secondary',
                 'sort_order' => 1,
                 'is_default' => true,
-                'subdomain' => false,
-                'custom_domain' => false,
-                'editable_sections' => false,
-                'cookie_banner' => false,
                 'monthly_price_cents' => 0,
+                'features' => $this->featureCatalog->defaultFeaturesForPlanSlug($application, 'basic'),
             ],
             [
                 'slug' => 'standard',
                 'name' => 'Standardni',
-                'member_limit' => 500,
                 'badge_class' => 'primary',
                 'sort_order' => 2,
                 'is_default' => false,
-                'subdomain' => true,
-                'custom_domain' => false,
-                'editable_sections' => true,
-                'cookie_banner' => true,
                 'monthly_price_cents' => 2900,
+                'features' => $this->featureCatalog->defaultFeaturesForPlanSlug($application, 'standard'),
             ],
             [
                 'slug' => 'premium',
                 'name' => 'Napredni',
-                'member_limit' => null,
                 'badge_class' => 'dark',
                 'sort_order' => 3,
                 'is_default' => false,
-                'subdomain' => true,
-                'custom_domain' => true,
-                'editable_sections' => true,
-                'cookie_banner' => true,
                 'monthly_price_cents' => 7900,
+                'features' => $this->featureCatalog->defaultFeaturesForPlanSlug($application, 'premium'),
             ],
         ];
 
-        foreach ($defaults as $plan) {
-            SubscriptionPlan::query()->updateOrCreate(
-                [
-                    'application_id' => $application->id,
-                    'slug' => $plan['slug'],
-                ],
-                $plan,
-            );
-        }
+        $this->upsertSeedPlans($application, $defaults);
     }
 
     public function seedSmbDefaults(Application $application): void
     {
+        $this->featureCatalog->seedDefaults($application);
+
         $defaults = [
             [
                 'slug' => 'basic',
                 'name' => 'Starter',
-                'member_limit' => 3,
                 'badge_class' => 'secondary',
                 'sort_order' => 1,
                 'is_default' => true,
-                'subdomain' => false,
-                'custom_domain' => false,
-                'editable_sections' => false,
-                'cookie_banner' => false,
                 'monthly_price_cents' => 0,
+                'features' => $this->featureCatalog->defaultFeaturesForPlanSlug($application, 'basic'),
             ],
             [
                 'slug' => 'standard',
                 'name' => 'Business',
-                'member_limit' => 15,
                 'badge_class' => 'primary',
                 'sort_order' => 2,
                 'is_default' => false,
-                'subdomain' => true,
-                'custom_domain' => false,
-                'editable_sections' => true,
-                'cookie_banner' => false,
                 'monthly_price_cents' => 4900,
+                'features' => $this->featureCatalog->defaultFeaturesForPlanSlug($application, 'standard'),
             ],
             [
                 'slug' => 'premium',
                 'name' => 'Enterprise',
-                'member_limit' => null,
                 'badge_class' => 'dark',
                 'sort_order' => 3,
                 'is_default' => false,
-                'subdomain' => true,
-                'custom_domain' => true,
-                'editable_sections' => true,
-                'cookie_banner' => true,
                 'monthly_price_cents' => 14900,
+                'features' => $this->featureCatalog->defaultFeaturesForPlanSlug($application, 'premium'),
             ],
         ];
 
+        $this->upsertSeedPlans($application, $defaults);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $defaults
+     */
+    private function upsertSeedPlans(Application $application, array $defaults): void
+    {
         foreach ($defaults as $plan) {
+            $features = $plan['features'];
+            unset($plan['features']);
+
             SubscriptionPlan::query()->updateOrCreate(
                 [
                     'application_id' => $application->id,
                     'slug' => $plan['slug'],
                 ],
-                $plan,
+                [
+                    ...$plan,
+                    'features' => $features,
+                    ...$this->legacyColumnsFromFeatures($features),
+                ],
             );
         }
     }

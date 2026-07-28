@@ -55,6 +55,27 @@ class AuditLogService
         ]);
     }
 
+    public function logTenantSsoChanged(
+        User $actor,
+        Tenant $tenant,
+        bool $from,
+        bool $to,
+    ): AuditLog {
+        return AuditLog::query()->create([
+            'user_id' => $actor->id,
+            'application_id' => $tenant->application_id,
+            'action' => AuditAction::TenantSsoChanged,
+            'subject_type' => Tenant::class,
+            'subject_id' => $tenant->id,
+            'properties' => [
+                'tenant_name' => $tenant->name,
+                'tenant_slug' => $tenant->slug,
+                'from' => $from,
+                'to' => $to,
+            ],
+        ]);
+    }
+
     public function logImpersonationStarted(ImpersonationSession $session): AuditLog
     {
         $session->loadMissing(['admin', 'tenant']);

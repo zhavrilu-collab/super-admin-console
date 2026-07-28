@@ -11,7 +11,12 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body">
         <form method="POST" action="{{ route('admin.subscription-plans.store') }}">
-            @include('admin.subscription-plans._form', ['plan' => null, 'badgeOptions' => $badgeOptions])
+            @include('admin.subscription-plans._form', [
+                'plan' => null,
+                'badgeOptions' => $badgeOptions,
+                'featureCatalog' => $featureCatalog,
+                'stripeConfigured' => $stripeConfigured ?? false,
+            ])
             <button type="submit" class="btn btn-dark">Spremi paket</button>
             <a href="{{ route('admin.subscription-plans.index') }}" class="btn btn-outline-secondary">Odustani</a>
         </form>

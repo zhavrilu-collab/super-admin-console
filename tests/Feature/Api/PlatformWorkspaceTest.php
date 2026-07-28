@@ -71,7 +71,8 @@ class PlatformWorkspaceTest extends TestCase
             ->assertOk()
             ->assertJsonPath('workspaces.0.role', 'owner')
             ->assertJsonPath('workspaces.0.tenant.external_id', '42')
-            ->assertJsonPath('workspaces.0.tenant.slug', 'demo-udruga');
+            ->assertJsonPath('workspaces.0.tenant.slug', 'demo-udruga')
+            ->assertJsonPath('workspaces.0.tenant.sso_enforced', false);
     }
 
     public function test_module_can_sync_memberships(): void

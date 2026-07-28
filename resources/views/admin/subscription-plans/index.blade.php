@@ -14,7 +14,10 @@
             <strong>Slug</strong> je tehnički ključ (npr. <code>basic</code>, <code>standard</code>, <code>premium</code>).
         </p>
     </div>
-    <a href="{{ route('admin.subscription-plans.create') }}" class="btn btn-dark">Novi paket</a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.application-features.index') }}" class="btn btn-outline-secondary">Značajke</a>
+        <a href="{{ route('admin.subscription-plans.create') }}" class="btn btn-dark">Novi paket</a>
+    </div>
 </div>
 
 <div class="card border-0 shadow-sm">
@@ -42,11 +45,12 @@
                         <td><code>{{ $plan->slug }}</code></td>
                         <td>{{ $plan->memberLimitLabel() }}</td>
                         <td class="small text-muted">
-                            @if($plan->subdomain) poddomena @endif
-                            @if($plan->custom_domain) vlastita domena @endif
-                            @if($plan->editable_sections) sekcije @endif
-                            @if($plan->cookie_banner) cookies @endif
-                            @if(! $plan->subdomain && ! $plan->custom_domain && ! $plan->editable_sections && ! $plan->cookie_banner)
+                            @php $features = $plan->featuresMap(); @endphp
+                            @if(! empty($features['subdomain'])) poddomena @endif
+                            @if(! empty($features['custom_domain'])) vlastita domena @endif
+                            @if(! empty($features['editable_sections'])) sekcije @endif
+                            @if(! empty($features['cookie_banner'])) cookies @endif
+                            @if(empty($features['subdomain']) && empty($features['custom_domain']) && empty($features['editable_sections']) && empty($features['cookie_banner']))
                                 —
                             @endif
                         </td>

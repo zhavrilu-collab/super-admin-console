@@ -30,6 +30,17 @@ class UpdateConsoleMailSettingsRequest extends FormRequest
             'stripe_publishable_key' => ['nullable', 'string', 'max:255'],
             'stripe_secret_key' => ['nullable', 'string', 'max:255'],
             'stripe_webhook_secret' => ['nullable', 'string', 'max:255'],
+            'bank_transfer_enabled' => ['nullable', 'boolean'],
+            'bank_transfer_iban' => ['nullable', 'string', 'max:34'],
+            'bank_transfer_recipient' => ['nullable', 'string', 'max:255'],
+            'bank_transfer_payment_days' => ['nullable', 'integer', 'min:1', 'max:90'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'bank_transfer_enabled' => $this->boolean('bank_transfer_enabled'),
+        ]);
     }
 }

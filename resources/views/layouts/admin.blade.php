@@ -30,6 +30,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('admin.stats.*')) active @endif" href="{{ route('admin.stats.index') }}">
+                        Statistika
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link @if(request()->routeIs('admin.audit.*')) active @endif" href="{{ route('admin.audit.index') }}">
                         Audit log
                     </a>
@@ -37,6 +42,11 @@
                 <li class="nav-item">
                     <a class="nav-link @if(request()->routeIs('admin.subscription-plans.*')) active @endif" href="{{ route('admin.subscription-plans.index') }}">
                         Paketi
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @if(request()->routeIs('admin.application-features.*')) active @endif" href="{{ route('admin.application-features.index') }}">
+                        Značajke
                     </a>
                 </li>
                 <li class="nav-item">

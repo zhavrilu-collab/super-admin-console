@@ -16,13 +16,6 @@
 </div>
 
 <div class="mb-3">
-    <label class="form-label">Limit članova</label>
-    <input type="number" name="member_limit" min="1" class="form-control @error('member_limit') is-invalid @enderror"
-           value="{{ old('member_limit', $plan->member_limit ?? '') }}" placeholder="Prazno = neograničeno">
-    @error('member_limit')<div class="invalid-feedback">{{ $message }}</div>@enderror
-</div>
-
-<div class="mb-3">
     <label class="form-label">Boja oznake</label>
     <select name="badge_class" class="form-select @error('badge_class') is-invalid @enderror" required>
         @foreach($badgeOptions as $value => $label)
@@ -48,31 +41,42 @@
 </div>
 
 <hr class="my-4">
-<h2 class="h6 mb-3">Web i domene</h2>
-
-<div class="form-check mb-2">
-    <input type="checkbox" name="subdomain" value="1" class="form-check-input" id="plan-subdomain"
-           @checked(old('subdomain', $plan->subdomain ?? false))>
-    <label class="form-check-label" for="plan-subdomain">Poddomena (npr. udruga.app.test)</label>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h6 mb-0">Značajke paketa</h2>
+    <a href="{{ route('admin.application-features.index') }}" class="small">Uredi katalog</a>
 </div>
 
-<div class="form-check mb-2">
-    <input type="checkbox" name="custom_domain" value="1" class="form-check-input" id="plan-custom-domain"
-           @checked(old('custom_domain', $plan->custom_domain ?? false))>
-    <label class="form-check-label" for="plan-custom-domain">Vlastita domena</label>
-</div>
+@php
+    $planFeatures = old('features', isset($plan) ? $plan->featuresMap() : []);
+@endphp
 
-<div class="form-check mb-2">
-    <input type="checkbox" name="editable_sections" value="1" class="form-check-input" id="plan-editable-sections"
-           @checked(old('editable_sections', $plan->editable_sections ?? false))>
-    <label class="form-check-label" for="plan-editable-sections">Uređivanje sekcija javnog weba</label>
-</div>
-
-<div class="form-check mb-3">
-    <input type="checkbox" name="cookie_banner" value="1" class="form-check-input" id="plan-cookie-banner"
-           @checked(old('cookie_banner', $plan->cookie_banner ?? false))>
-    <label class="form-check-label" for="plan-cookie-banner">Cookie banner na javnom webu</label>
-</div>
+@forelse($featureCatalog as $feature)
+    @if($feature->isLimit())
+        <div class="mb-3">
+            <label class="form-label" for="feature-{{ $feature->key }}">{{ $feature->label }}</label>
+            <input type="number" name="features[{{ $feature->key }}]" id="feature-{{ $feature->key }}"
+                   min="1" class="form-control @error('features.'.$feature->key) is-invalid @enderror"
+                   value="{{ old('features.'.$feature->key, $planFeatures[$feature->key] ?? '') }}"
+                   placeholder="Prazno = neograničeno">
+            @if($feature->description)
+                <div class="form-text">{{ $feature->description }}</div>
+            @endif
+            @error('features.'.$feature->key)<div class="invalid-feedback">{{ $message }}</div>@enderror
+        </div>
+    @else
+        <div class="form-check mb-2">
+            <input type="checkbox" name="features[{{ $feature->key }}]" value="1"
+                   class="form-check-input" id="feature-{{ $feature->key }}"
+                   @checked(old('features.'.$feature->key, (bool) ($planFeatures[$feature->key] ?? false)))>
+            <label class="form-check-label" for="feature-{{ $feature->key }}">{{ $feature->label }}</label>
+            @if($feature->description)
+                <div class="form-text">{{ $feature->description }}</div>
+            @endif
+        </div>
+    @endif
+@empty
+    <p class="text-muted small">Nema značajki u katalogu. <a href="{{ route('admin.application-features.index') }}">Dodaj značajke</a>.</p>
+@endforelse
 
 <hr class="my-4">
 <h2 class="h6 mb-3">Stripe naplata</h2>
@@ -83,14 +87,32 @@
            class="form-control @error('monthly_price') is-invalid @enderror"
            value="{{ old('monthly_price', isset($plan->monthly_price_cents) ? number_format($plan->monthly_price_cents / 100, 2, '.', '') : '') }}"
            placeholder="npr. 29.00">
-    <div class="form-text">Koristi se za MRR dashboard (ne mora biti 1:1 sa Stripe cijenom).</div>
+    <div class="form-text">Izvor za MRR i automatsko kreiranje Stripe cijene.</div>
     @error('monthly_price')<div class="invalid-feedback">{{ $message }}</div>@enderror
+</div>
+
+@php($stripeConfigured = $stripeConfigured ?? false)
+<div class="form-check mb-3">
+    <input type="hidden" name="sync_stripe_catalog" value="0">
+    <input class="form-check-input" type="checkbox" name="sync_stripe_catalog" value="1" id="sync-stripe-catalog"
+           @checked(old('sync_stripe_catalog', $stripeConfigured))>
+    <label class="form-check-label" for="sync-stripe-catalog">
+        Automatski syncaj Product/Price u Stripe
+    </label>
+    <div class="form-text">
+        @if($stripeConfigured)
+            Pri spremanju kreira ili osvježava Stripe Product i mjesečni Price iz cijene iznad.
+        @else
+            Stripe nije konfiguriran — uključi ključeve u Postavkama.
+        @endif
+    </div>
 </div>
 
 <div class="mb-3">
     <label class="form-label">Stripe Product ID</label>
     <input type="text" name="stripe_product_id" class="form-control @error('stripe_product_id') is-invalid @enderror"
            value="{{ old('stripe_product_id', $plan->stripe_product_id ?? '') }}" placeholder="prod_...">
+    <div class="form-text">Opcionalno ručno; auto-sync popunjava ovo polje.</div>
     @error('stripe_product_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
 </div>
 
@@ -98,6 +120,6 @@
     <label class="form-label">Stripe Price ID</label>
     <input type="text" name="stripe_price_id" class="form-control @error('stripe_price_id') is-invalid @enderror"
            value="{{ old('stripe_price_id', $plan->stripe_price_id ?? '') }}" placeholder="price_...">
-    <div class="form-text">Mapiranje paketa na Stripe cijenu (npr. price_123 za Standardni).</div>
+    <div class="form-text">Opcionalno ručno; auto-sync kreira novi Price ako se cijena promijeni.</div>
     @error('stripe_price_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
 </div>

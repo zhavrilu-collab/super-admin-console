@@ -8,7 +8,9 @@ use App\Http\Requests\Admin\UpdateSubscriptionPlanRequest;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Services\Admin\AdminSaaSService;
+use App\Services\Admin\ApplicationFeatureCatalogService;
 use App\Services\Admin\SubscriptionPlanService;
+use App\Services\Billing\StripeBillingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -18,6 +20,8 @@ class AdminSubscriptionPlanController extends Controller
     public function __construct(
         private readonly AdminSaaSService $adminSaaSService,
         private readonly SubscriptionPlanService $subscriptionPlanService,
+        private readonly ApplicationFeatureCatalogService $featureCatalog,
+        private readonly StripeBillingService $stripeBilling,
     ) {}
 
     public function index(): View|RedirectResponse
@@ -44,10 +48,13 @@ class AdminSubscriptionPlanController extends Controller
     public function create(): View|RedirectResponse
     {
         $application = $this->requireActiveApplication();
+        $this->featureCatalog->seedDefaults($application);
 
         return view('admin.subscription-plans.create', [
             'activeApplication' => $application,
             'badgeOptions' => $this->badgeOptions(),
+            'featureCatalog' => $this->featureCatalog->forApplication($application->id),
+            'stripeConfigured' => $this->stripeBilling->isConfigured(),
         ]);
     }
 
@@ -65,19 +72,32 @@ class AdminSubscriptionPlanController extends Controller
             $this->subscriptionPlanService->setDefault($plan);
         }
 
-        return redirect()
-            ->route('admin.subscription-plans.index')
-            ->with('status', 'Paket pretplate je dodan.');
+        $status = 'Paket pretplate je dodan.';
+        $warning = null;
+
+        if ($request->shouldSyncStripeCatalog()) {
+            $sync = $this->syncPlanToStripe($plan);
+            $status = $sync['status'] ?? $status;
+            $warning = $sync['warning'] ?? null;
+        }
+
+        $redirect = redirect()->route('admin.subscription-plans.index')->with('status', $status);
+
+        return $warning !== null ? $redirect->with('warning', $warning) : $redirect;
     }
 
     public function edit(SubscriptionPlan $subscriptionPlan): View
     {
         $this->assertPlanBelongsToActiveApplication($subscriptionPlan);
+        $application = $this->adminSaaSService->getActiveApplication();
+        $this->featureCatalog->seedDefaults($application);
 
         return view('admin.subscription-plans.edit', [
-            'activeApplication' => $this->adminSaaSService->getActiveApplication(),
+            'activeApplication' => $application,
             'plan' => $subscriptionPlan,
             'badgeOptions' => $this->badgeOptions(),
+            'featureCatalog' => $this->featureCatalog->forApplication($application?->id),
+            'stripeConfigured' => $this->stripeBilling->isConfigured(),
         ]);
     }
 
@@ -102,9 +122,54 @@ class AdminSubscriptionPlanController extends Controller
             $this->subscriptionPlanService->setDefault($subscriptionPlan);
         }
 
-        return redirect()
-            ->route('admin.subscription-plans.index')
-            ->with('status', 'Paket pretplate je ažuriran.');
+        $status = 'Paket pretplate je ažuriran.';
+        $warning = null;
+
+        if ($request->shouldSyncStripeCatalog()) {
+            $sync = $this->syncPlanToStripe($subscriptionPlan);
+            $status = $sync['status'] ?? $status;
+            $warning = $sync['warning'] ?? null;
+        }
+
+        $redirect = redirect()->route('admin.subscription-plans.index')->with('status', $status);
+
+        return $warning !== null ? $redirect->with('warning', $warning) : $redirect;
+    }
+
+    public function syncStripe(SubscriptionPlan $subscriptionPlan): RedirectResponse
+    {
+        $this->assertPlanBelongsToActiveApplication($subscriptionPlan);
+
+        $sync = $this->syncPlanToStripe($subscriptionPlan);
+        $redirect = redirect()
+            ->route('admin.subscription-plans.edit', $subscriptionPlan)
+            ->with('status', $sync['status'] ?? 'Stripe katalog je sinkroniziran.');
+
+        return isset($sync['warning'])
+            ? $redirect->with('warning', $sync['warning'])
+            : $redirect;
+    }
+
+    /**
+     * @return array{status?: string, warning?: string}
+     */
+    private function syncPlanToStripe(SubscriptionPlan $plan): array
+    {
+        if (! $this->stripeBilling->isConfigured()) {
+            return ['warning' => 'Stripe nije konfiguriran — paket je spremljen bez Stripe synca.'];
+        }
+
+        if ((int) ($plan->monthly_price_cents ?? 0) <= 0) {
+            return ['warning' => 'Mjesečna cijena mora biti veća od 0 za automatski Stripe katalog.'];
+        }
+
+        try {
+            $this->stripeBilling->ensureStripeCatalog($plan->fresh() ?? $plan);
+        } catch (\Throwable $exception) {
+            return ['warning' => 'Stripe sync nije uspio: '.$exception->getMessage()];
+        }
+
+        return ['status' => 'Paket je spremljen i sinkroniziran sa Stripe katalogom.'];
     }
 
     public function destroy(SubscriptionPlan $subscriptionPlan): RedirectResponse

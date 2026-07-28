@@ -57,7 +57,8 @@ class TenantDetailTest extends TestCase
             ->assertSee($tenant->slug)
             ->assertSee('Povijest moderacije')
             ->assertSee('Otvori u SaaS aplikaciji')
-            ->assertSee('http://127.0.0.1:8000/'.$tenant->slug);
+            ->assertSee('http://127.0.0.1:8000/'.$tenant->slug)
+            ->assertSee('Stripe naplata');
     }
 
     public function test_tenant_detail_shows_audit_history(): void
@@ -111,6 +112,29 @@ class TenantDetailTest extends TestCase
             ->get(route('admin.dashboard'))
             ->assertOk()
             ->assertSee(route('admin.tenants.show', $tenant, false), false);
+    }
+
+    public function test_super_admin_can_toggle_sso_enforced(): void
+    {
+        $tenant = $this->createTenant($this->activeApplication, TenantStatus::Active);
+
+        $this->actingAs($this->superAdmin)
+            ->withSession([AdminSession::ACTIVE_APP_ID => $this->activeApplication->id])
+            ->from(route('admin.tenants.show', $tenant))
+            ->patch(route('admin.tenants.update-sso', $tenant), [
+                'sso_enforced' => '1',
+            ])
+            ->assertRedirect(route('admin.tenants.show', $tenant))
+            ->assertSessionHas('status');
+
+        $this->assertTrue($tenant->fresh()->sso_enforced);
+
+        $this->actingAs($this->superAdmin)
+            ->withSession([AdminSession::ACTIVE_APP_ID => $this->activeApplication->id])
+            ->get(route('admin.tenants.show', $tenant))
+            ->assertOk()
+            ->assertSee('Prijava / SSO')
+            ->assertSee('Promjena SSO pravila tenanta');
     }
 
     private function createTenant(

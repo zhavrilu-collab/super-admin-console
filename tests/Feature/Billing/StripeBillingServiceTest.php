@@ -6,9 +6,12 @@ use App\Enums\SubscriptionStatus;
 use App\Models\Application;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
+use App\Models\User;
 use App\Services\Admin\ConsoleSettingsService;
 use App\Services\Billing\StripeBillingService;
+use App\Support\AdminSession;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery;
 use Tests\TestCase;
 
 class StripeBillingServiceTest extends TestCase
@@ -105,6 +108,81 @@ class StripeBillingServiceTest extends TestCase
             'tenant_id' => $tenant->id,
             'stripe_subscription_id' => 'sub_abc123',
             'status' => 'active',
+        ]);
+    }
+
+    public function test_ensure_stripe_catalog_skips_free_plans(): void
+    {
+        app(ConsoleSettingsService::class)->set(
+            ConsoleSettingsService::STRIPE_SECRET_KEY,
+            'sk_test_example',
+        );
+
+        $application = Application::query()->create([
+            'name' => 'Test SaaS',
+            'slug' => 'test-app',
+            'description' => 'Test',
+        ]);
+
+        $plan = SubscriptionPlan::query()->create([
+            'application_id' => $application->id,
+            'name' => 'Osnovni',
+            'slug' => 'basic',
+            'badge_class' => 'secondary',
+            'monthly_price_cents' => 0,
+        ]);
+
+        $result = app(StripeBillingService::class)->ensureStripeCatalog($plan);
+
+        $this->assertNull($result->stripe_price_id);
+        $this->assertNull($result->stripe_product_id);
+    }
+
+    public function test_plan_store_with_sync_calls_ensure_stripe_catalog(): void
+    {
+        $user = User::factory()->superAdmin()->create();
+        $application = Application::query()->create([
+            'name' => 'Test SaaS',
+            'slug' => 'test-app',
+            'description' => 'Test',
+        ]);
+
+        app(ConsoleSettingsService::class)->set(
+            ConsoleSettingsService::STRIPE_SECRET_KEY,
+            'sk_test_example',
+        );
+
+        $billing = Mockery::mock(StripeBillingService::class);
+        $billing->shouldReceive('isConfigured')->andReturn(true);
+        $billing->shouldReceive('ensureStripeCatalog')
+            ->once()
+            ->andReturnUsing(function (SubscriptionPlan $plan) {
+                $plan->forceFill([
+                    'stripe_product_id' => 'prod_auto_1',
+                    'stripe_price_id' => 'price_auto_1',
+                ])->save();
+
+                return $plan->fresh();
+            });
+        $this->app->instance(StripeBillingService::class, $billing);
+
+        $this->actingAs($user)
+            ->withSession([AdminSession::ACTIVE_APP_ID => $application->id])
+            ->post(route('admin.subscription-plans.store'), [
+                'name' => 'Pro',
+                'slug' => 'pro',
+                'badge_class' => 'info',
+                'monthly_price' => '49.00',
+                'sync_stripe_catalog' => '1',
+            ])
+            ->assertRedirect(route('admin.subscription-plans.index'));
+
+        $this->assertDatabaseHas('subscription_plans', [
+            'application_id' => $application->id,
+            'slug' => 'pro',
+            'stripe_product_id' => 'prod_auto_1',
+            'stripe_price_id' => 'price_auto_1',
+            'monthly_price_cents' => 4900,
         ]);
     }
 }

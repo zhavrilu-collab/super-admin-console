@@ -112,6 +112,168 @@
     </div>
 </div>
 
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h2 class="h6 mb-0">Prijava / SSO</h2>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Kad je SSO obavezan, članovi ovog tenanta ne mogu se prijaviti lozinkom u ovu aplikaciju —
+                    moraju koristiti Google ili Microsoft prijavu.
+                </p>
+
+                <form method="POST" action="{{ route('admin.tenants.update-sso', $tenant) }}">
+                    @csrf
+                    @method('PATCH')
+
+                    <div class="form-check form-switch mb-3">
+                        <input type="hidden" name="sso_enforced" value="0">
+                        <input class="form-check-input" type="checkbox" role="switch"
+                               id="sso_enforced" name="sso_enforced" value="1"
+                               @checked(old('sso_enforced', $tenant->sso_enforced))>
+                        <label class="form-check-label" for="sso_enforced">
+                            Obavezna SSO prijava
+                        </label>
+                    </div>
+
+                    @error('sso_enforced')
+                        <div class="text-danger small mb-2">{{ $message }}</div>
+                    @enderror
+
+                    <button type="submit" class="btn btn-outline-dark btn-sm">Spremi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h2 class="h6 mb-0">Stripe naplata</h2>
+                @if($stripeConfigured ?? false)
+                    <span class="badge bg-success">Stripe OK</span>
+                @else
+                    <span class="badge bg-warning text-dark">Nije konfiguriran</span>
+                @endif
+            </div>
+            <div class="card-body">
+                <dl class="row mb-3">
+                    <dt class="col-sm-5 text-muted">Customer ID</dt>
+                    <dd class="col-sm-7">
+                        @if($tenant->stripe_customer_id)
+                            <code>{{ $tenant->stripe_customer_id }}</code>
+                        @else
+                            <span class="text-muted">—</span>
+                        @endif
+                    </dd>
+
+                    <dt class="col-sm-5 text-muted">Pretplata</dt>
+                    <dd class="col-sm-7">
+                        @if($activeSubscription)
+                            <span class="badge bg-{{ $activeSubscription->isActive() ? 'success' : 'secondary' }}">
+                                {{ $activeSubscription->status->label() }}
+                            </span>
+                            <div class="small text-muted mt-1">
+                                <code>{{ $activeSubscription->stripe_subscription_id }}</code>
+                            </div>
+                            @if($activeSubscription->current_period_end)
+                                <div class="small text-muted">
+                                    Period do {{ $activeSubscription->current_period_end->format('d.m.Y.') }}
+                                </div>
+                            @endif
+                        @else
+                            <span class="text-muted">Nema aktivne Stripe pretplate</span>
+                        @endif
+                    </dd>
+
+                    <dt class="col-sm-5 text-muted">Dunning</dt>
+                    <dd class="col-sm-7">
+                        @if($openDunning ?? null)
+                            <span class="badge bg-danger">Otvoren</span>
+                            <div class="small text-muted mt-1">
+                                Od {{ $openDunning->started_at?->format('d.m.Y.') }}
+                                @if($openDunning->suspend_after_at)
+                                    · suspend nakon {{ $openDunning->suspend_after_at->format('d.m.Y.') }}
+                                @endif
+                            </div>
+                        @else
+                            <span class="text-muted">Nema</span>
+                        @endif
+                    </dd>
+                </dl>
+
+                @if($stripeConfigured ?? false)
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        @if($tenant->stripe_customer_id)
+                            <form method="POST" action="{{ route('admin.tenants.billing.portal', $tenant) }}">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-primary btn-sm">Stripe Portal</button>
+                            </form>
+                        @endif
+                    </div>
+
+                    @if(($billablePlans ?? collect())->isNotEmpty())
+                        <hr>
+                        <h3 class="h6">Pokreni Checkout</h3>
+                        <form method="POST" action="{{ route('admin.tenants.billing.checkout', $tenant) }}" class="row g-2 align-items-end mb-3">
+                            @csrf
+                            <div class="col-md-5">
+                                <label class="form-label small mb-1">Paket</label>
+                                <select name="plan_slug" class="form-select form-select-sm" required>
+                                    @foreach($billablePlans as $billablePlan)
+                                        <option value="{{ $billablePlan->slug }}" @selected($billablePlan->slug === $tenant->plan)>
+                                            {{ $billablePlan->name }} ({{ $billablePlan->monthlyPriceLabel() }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small mb-1">E-mail kupca</label>
+                                <input type="email" name="customer_email" class="form-control form-control-sm" placeholder="opcionalno">
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-dark btn-sm w-100">Checkout</button>
+                            </div>
+                        </form>
+
+                        @if($activeSubscription?->isActive())
+                            <h3 class="h6">Promijeni paket (proration)</h3>
+                            <form method="POST" action="{{ route('admin.tenants.billing.change-plan', $tenant) }}" class="row g-2 align-items-end">
+                                @csrf
+                                <div class="col-md-8">
+                                    <select name="plan_slug" class="form-select form-select-sm" required>
+                                        @foreach($billablePlans as $billablePlan)
+                                            <option value="{{ $billablePlan->slug }}" @selected($billablePlan->slug === $tenant->plan)>
+                                                {{ $billablePlan->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn btn-outline-dark btn-sm w-100 js-confirm-action"
+                                            data-confirm="Promijeniti Stripe pretplatu s prorationom?">
+                                        Promijeni
+                                    </button>
+                                </div>
+                            </form>
+                        @endif
+                    @else
+                        <p class="small text-muted mb-0">
+                            Nema paketa s Stripe Price ID. Uredi paket i uključi auto-sync u Stripe.
+                        </p>
+                    @endif
+                @else
+                    <p class="small text-muted mb-0">
+                        Postavi Stripe ključeve u <a href="{{ route('admin.settings.index') }}">Postavkama</a>.
+                    </p>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
         <h2 class="h5 mb-0">Povijest moderacije</h2>

@@ -75,7 +75,7 @@ Route::middleware('throttle:platform-auth')
         Route::post('{token}/end', [PlatformImpersonationController::class, 'end'])->name('end');
     });
 
-Route::middleware('throttle:webhooks')
+Route::middleware('throttle:stripe-webhooks')
     ->post('webhooks/stripe', [StripeWebhookController::class, 'handle'])
     ->name($routeNamePrefix.'webhooks.stripe');
 
@@ -97,6 +97,9 @@ Route::middleware([VerifySaasWebhookSecret::class, 'throttle:webhooks'])
 
         Route::post('billing/checkout', [PlatformBillingController::class, 'checkout'])
             ->name('billing.checkout');
+
+        Route::post('billing/bank-transfer', [PlatformBillingController::class, 'bankTransfer'])
+            ->name('billing.bank-transfer');
 
         Route::post('billing/portal', [PlatformBillingController::class, 'portal'])
             ->name('billing.portal');

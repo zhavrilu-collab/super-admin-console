@@ -127,6 +127,7 @@ class PlatformWorkspaceService
                 'name' => $tenant->name,
                 'status' => $tenant->status,
                 'plan' => $tenant->plan,
+                'sso_enforced' => (bool) $tenant->sso_enforced,
             ],
         ];
     }

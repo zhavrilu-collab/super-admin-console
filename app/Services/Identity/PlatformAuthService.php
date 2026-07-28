@@ -4,6 +4,7 @@ namespace App\Services\Identity;
 
 use App\Models\Application;
 use App\Models\PlatformAccessToken;
+use App\Models\PlatformTenantMembership;
 use App\Models\PlatformUserLink;
 use App\Models\User;
 use App\Services\Auth\TwoFactorAuthenticationService;
@@ -25,9 +26,9 @@ class PlatformAuthService
     /**
      * @return array{token?: string, user?: array<string, mixed>, two_factor_required?: bool, two_factor_token?: string}
      */
-    public function login(string $email, string $password): array
+    public function login(string $email, string $password, ?string $applicationSlug = null): array
     {
-        $user = $this->authenticateCredentials($email, $password);
+        $user = $this->authenticateCredentials($email, $password, $applicationSlug);
 
         if ($user->hasTwoFactorEnabled()) {
             return [
@@ -39,7 +40,7 @@ class PlatformAuthService
         return $this->issueAuthenticatedSession($user);
     }
 
-    public function authenticateCredentials(string $email, string $password): User
+    public function authenticateCredentials(string $email, string $password, ?string $applicationSlug = null): User
     {
         $user = User::query()->where('email', $email)->first();
 
@@ -55,7 +56,53 @@ class PlatformAuthService
             ]);
         }
 
+        $this->assertPasswordLoginAllowed($user, $applicationSlug);
+
         return $user;
+    }
+
+    public function assertPasswordLoginAllowed(User $user, ?string $applicationSlug = null): void
+    {
+        $memberships = PlatformTenantMembership::query()
+            ->with('tenant.application')
+            ->where('user_id', $user->id)
+            ->get();
+
+        if ($memberships->isEmpty()) {
+            return;
+        }
+
+        $normalizedSlug = is_string($applicationSlug) && $applicationSlug !== ''
+            ? $applicationSlug
+            : null;
+
+        if ($normalizedSlug !== null) {
+            $hasSsoInApp = $memberships->contains(function (PlatformTenantMembership $membership) use ($normalizedSlug): bool {
+                $tenant = $membership->tenant;
+
+                return $tenant !== null
+                    && $tenant->sso_enforced === true
+                    && $tenant->application?->slug === $normalizedSlug;
+            });
+
+            if ($hasSsoInApp) {
+                throw ValidationException::withMessages([
+                    'email' => ['Za ovu organizaciju je obavezna SSO prijava (Google ili Microsoft).'],
+                ]);
+            }
+
+            return;
+        }
+
+        $allSso = $memberships->every(
+            fn (PlatformTenantMembership $membership): bool => $membership->tenant?->sso_enforced === true,
+        );
+
+        if ($allSso) {
+            throw ValidationException::withMessages([
+                'email' => ['Za vaše organizacije je obavezna SSO prijava (Google ili Microsoft).'],
+            ]);
+        }
     }
 
     /**

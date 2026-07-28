@@ -88,6 +88,7 @@ class StripeBillingService
         string $successUrl,
         string $cancelUrl,
         ?string $customerEmail = null,
+        ?int $trialPeriodDays = null,
     ): array {
         if ($plan->stripe_price_id === null || $plan->stripe_price_id === '') {
             throw new \InvalidArgumentException('Paket nema mapiran Stripe Price ID.');
@@ -95,9 +96,26 @@ class StripeBillingService
 
         $customerId = $this->ensureStripeCustomer($tenant, $customerEmail);
 
+        $subscriptionData = [
+            'metadata' => [
+                'tenant_id' => (string) $tenant->id,
+                'plan_slug' => $plan->slug,
+            ],
+        ];
+
+        if ($trialPeriodDays !== null && $trialPeriodDays > 0) {
+            $subscriptionData['trial_period_days'] = $trialPeriodDays;
+        }
+
+        $paymentMethods = config('billing.checkout_payment_methods', ['card']);
+        if (! is_array($paymentMethods) || $paymentMethods === []) {
+            $paymentMethods = ['card'];
+        }
+
         $session = $this->client()->checkout->sessions->create([
             'mode' => 'subscription',
             'customer' => $customerId,
+            'payment_method_types' => array_values($paymentMethods),
             'line_items' => [[
                 'price' => $plan->stripe_price_id,
                 'quantity' => 1,
@@ -108,12 +126,7 @@ class StripeBillingService
                 'tenant_id' => (string) $tenant->id,
                 'plan_slug' => $plan->slug,
             ],
-            'subscription_data' => [
-                'metadata' => [
-                    'tenant_id' => (string) $tenant->id,
-                    'plan_slug' => $plan->slug,
-                ],
-            ],
+            'subscription_data' => $subscriptionData,
         ]);
 
         return [
@@ -178,6 +191,79 @@ class StripeBillingService
         ]);
 
         return $this->syncSubscriptionFromStripePayload($tenant, $updated->toArray());
+    }
+
+    /**
+     * Create or refresh Stripe Product + recurring Price from the plan's monthly price.
+     * Stripe prices are immutable: amount changes create a new Price ID.
+     */
+    public function ensureStripeCatalog(SubscriptionPlan $plan): SubscriptionPlan
+    {
+        if (! $this->isConfigured()) {
+            throw new \InvalidArgumentException('Stripe nije konfiguriran.');
+        }
+
+        $amount = (int) ($plan->monthly_price_cents ?? 0);
+
+        if ($amount <= 0) {
+            return $plan;
+        }
+
+        $currency = strtolower((string) config('billing.currency', 'eur'));
+        $productId = $plan->stripe_product_id;
+
+        if (! is_string($productId) || $productId === '') {
+            $product = $this->client()->products->create([
+                'name' => $plan->name,
+                'metadata' => [
+                    'plan_id' => (string) $plan->id,
+                    'plan_slug' => $plan->slug,
+                    'application_id' => (string) $plan->application_id,
+                ],
+            ]);
+            $productId = $product->id;
+            $plan->forceFill(['stripe_product_id' => $productId])->save();
+        } else {
+            $this->client()->products->update($productId, [
+                'name' => $plan->name,
+                'metadata' => [
+                    'plan_id' => (string) $plan->id,
+                    'plan_slug' => $plan->slug,
+                    'application_id' => (string) $plan->application_id,
+                ],
+            ]);
+        }
+
+        $needsNewPrice = $plan->stripe_price_id === null || $plan->stripe_price_id === '';
+
+        if (! $needsNewPrice && is_string($plan->stripe_price_id)) {
+            try {
+                $existing = $this->client()->prices->retrieve($plan->stripe_price_id);
+                $existingAmount = (int) ($existing->unit_amount ?? 0);
+                $existingCurrency = strtolower((string) ($existing->currency ?? ''));
+                $needsNewPrice = $existingAmount !== $amount || $existingCurrency !== $currency;
+            } catch (\Throwable) {
+                $needsNewPrice = true;
+            }
+        }
+
+        if ($needsNewPrice) {
+            $price = $this->client()->prices->create([
+                'product' => $productId,
+                'unit_amount' => $amount,
+                'currency' => $currency,
+                'recurring' => ['interval' => 'month'],
+                'metadata' => [
+                    'plan_id' => (string) $plan->id,
+                    'plan_slug' => $plan->slug,
+                    'application_id' => (string) $plan->application_id,
+                ],
+            ]);
+
+            $plan->forceFill(['stripe_price_id' => $price->id])->save();
+        }
+
+        return $plan->fresh() ?? $plan;
     }
 
     public function findPlanByStripePriceId(string $priceId, ?int $applicationId = null): ?SubscriptionPlan

@@ -32,6 +32,14 @@ class ConsoleSettingsService
 
     public const STRIPE_WEBHOOK_SECRET = 'billing.stripe_webhook_secret';
 
+    public const BANK_TRANSFER_ENABLED = 'billing.bank_transfer_enabled';
+
+    public const BANK_TRANSFER_IBAN = 'billing.bank_transfer_iban';
+
+    public const BANK_TRANSFER_RECIPIENT = 'billing.bank_transfer_recipient';
+
+    public const BANK_TRANSFER_PAYMENT_DAYS = 'billing.bank_transfer_payment_days';
+
     /** @var list<string> */
     private const ENCRYPTED_KEYS = [
         self::MAIL_PASSWORD,
@@ -139,12 +147,68 @@ class ConsoleSettingsService
      */
     public function billingSettingsForForm(): array
     {
+        $enabled = $this->get(
+            self::BANK_TRANSFER_ENABLED,
+            config('billing.bank_transfer.enabled') ? '1' : '0',
+        );
+
         return [
             'stripe_publishable_key' => $this->get(
                 self::STRIPE_PUBLISHABLE_KEY,
                 config('billing.stripe_publishable_key'),
             ) ?? '',
+            'bank_transfer_enabled' => in_array($enabled, ['1', 'true', 'yes'], true),
+            'bank_transfer_iban' => $this->get(
+                self::BANK_TRANSFER_IBAN,
+                config('billing.bank_transfer.iban'),
+            ) ?? '',
+            'bank_transfer_recipient' => $this->get(
+                self::BANK_TRANSFER_RECIPIENT,
+                config('billing.bank_transfer.recipient_name'),
+            ) ?? '',
+            'bank_transfer_payment_days' => $this->get(
+                self::BANK_TRANSFER_PAYMENT_DAYS,
+                (string) config('billing.bank_transfer.payment_days', 14),
+            ) ?? '14',
         ];
+    }
+
+    public function bankTransferEnabled(): bool
+    {
+        $value = $this->get(
+            self::BANK_TRANSFER_ENABLED,
+            config('billing.bank_transfer.enabled') ? '1' : '0',
+        );
+
+        return in_array((string) $value, ['1', 'true', 'yes'], true);
+    }
+
+    public function bankTransferIban(): ?string
+    {
+        $iban = $this->get(
+            self::BANK_TRANSFER_IBAN,
+            config('billing.bank_transfer.iban'),
+        );
+
+        $iban = is_string($iban) ? preg_replace('/\s+/', '', $iban) : null;
+
+        return filled($iban) ? $iban : null;
+    }
+
+    public function bankTransferRecipient(): string
+    {
+        return (string) ($this->get(
+            self::BANK_TRANSFER_RECIPIENT,
+            config('billing.bank_transfer.recipient_name', 'Udruga SaaS'),
+        ) ?: 'Udruga SaaS');
+    }
+
+    public function bankTransferPaymentDays(): int
+    {
+        return max(1, (int) ($this->get(
+            self::BANK_TRANSFER_PAYMENT_DAYS,
+            (string) config('billing.bank_transfer.payment_days', 14),
+        ) ?: 14));
     }
 
     /**

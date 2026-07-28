@@ -35,4 +35,23 @@ return [
         'default_ltv_months' => (int) env('BILLING_LTV_MONTHS', 24),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Uplata na poslovni račun (udruga / B2B)
+    |--------------------------------------------------------------------------
+    */
+    'bank_transfer' => [
+        'enabled' => (bool) env('BILLING_BANK_TRANSFER_ENABLED', true),
+        'recipient_name' => env('BILLING_BANK_RECIPIENT', 'Udruga SaaS d.o.o.'),
+        'iban' => env('BILLING_BANK_IBAN'),
+        'payment_days' => (int) env('BILLING_BANK_PAYMENT_DAYS', 14),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stripe Checkout — načini plaćanja
+    |--------------------------------------------------------------------------
+    */
+    'checkout_payment_methods' => ['card', 'sepa_debit'],
+
 ];

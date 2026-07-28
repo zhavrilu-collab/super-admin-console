@@ -57,6 +57,10 @@ TRUSTED_PROXIES=*
 UDRUGA_SAAS_API_URL=https://app.example.hr
 UDRUGA_SAAS_API_KEY=<isti kao ADMIN_SYNC_API_KEY na SaaS-u>
 SAAS_WEBHOOK_SECRET=<isti kao ADMIN_CONSOLE_WEBHOOK_SECRET na SaaS-u>
+
+# Same-VPS behind SSL-inspecting firewall / hairpin NAT:
+SAAS_HTTP_VERIFY=false
+SAAS_HTTP_RESOLVE_LOOPBACK=true
 ```
 
 ### Post-deploy

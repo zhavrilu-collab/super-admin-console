@@ -24,9 +24,14 @@ class PlatformAuthController extends Controller
 
     public function login(PlatformLoginRequest $request): JsonResponse
     {
+        $applicationSlug = $request->filled('application_slug')
+            ? $request->string('application_slug')->toString()
+            : null;
+
         $payload = $this->platformAuth->login(
             $request->string('email')->toString(),
             $request->string('password')->toString(),
+            $applicationSlug !== '' ? $applicationSlug : null,
         );
 
         if (($payload['two_factor_required'] ?? false) === true) {

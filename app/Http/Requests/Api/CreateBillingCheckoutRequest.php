@@ -23,6 +23,7 @@ class CreateBillingCheckoutRequest extends FormRequest
             'success_url' => ['required', 'url', 'max:2048'],
             'cancel_url' => ['required', 'url', 'max:2048'],
             'customer_email' => ['nullable', 'email', 'max:255'],
+            'trial_period_days' => ['nullable', 'integer', 'min:0', 'max:365'],
         ];
     }
 }

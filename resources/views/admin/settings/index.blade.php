@@ -110,6 +110,46 @@
 
                     <hr>
 
+                    <h3 class="h6 mb-3">Uplata na poslovni račun</h3>
+                    <p class="small text-muted mb-3">
+                        Koristi se kad tenant odabere „Uplata na račun” umjesto kartice/SEPA.
+                        Unesite IBAN na koji udruge trebaju uplatiti pretplatu.
+                    </p>
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="bank_transfer_enabled" id="bank_transfer_enabled" value="1"
+                               class="form-check-input"
+                               @checked(old('bank_transfer_enabled', $billing['bank_transfer_enabled'] ?? true))>
+                        <label class="form-check-label" for="bank_transfer_enabled">Omogući uplatu na račun</label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Primatelj</label>
+                        <input type="text" name="bank_transfer_recipient" class="form-control @error('bank_transfer_recipient') is-invalid @enderror"
+                               value="{{ old('bank_transfer_recipient', $billing['bank_transfer_recipient'] ?? '') }}"
+                               placeholder="npr. Udruga SaaS d.o.o.">
+                        @error('bank_transfer_recipient')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">IBAN</label>
+                        <input type="text" name="bank_transfer_iban" class="form-control @error('bank_transfer_iban') is-invalid @enderror"
+                               value="{{ old('bank_transfer_iban', $billing['bank_transfer_iban'] ?? '') }}"
+                               placeholder="HR###################" maxlength="34">
+                        @error('bank_transfer_iban')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-text">Bez praznina. Za lokalni test možete unijeti bilo koji ispravan format HR IBAN-a.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Rok uplate (dana)</label>
+                        <input type="number" name="bank_transfer_payment_days" class="form-control @error('bank_transfer_payment_days') is-invalid @enderror"
+                               value="{{ old('bank_transfer_payment_days', $billing['bank_transfer_payment_days'] ?? 14) }}"
+                               min="1" max="90">
+                        @error('bank_transfer_payment_days')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <hr>
+
                     <div class="mb-3">
                         <label class="form-label">Webhook tajni ključ (dolazni)</label>
                         <input type="password" name="webhook_secret" class="form-control" autocomplete="new-password"

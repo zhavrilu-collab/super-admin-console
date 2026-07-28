@@ -76,6 +76,12 @@ class AuditLog extends Model
                 $this->planLabelFromAuditProperty('from'),
                 $this->planLabelFromAuditProperty('to'),
             ),
+            AuditAction::TenantSsoChanged => sprintf(
+                '%s: SSO %s → %s',
+                $tenantName,
+                ($this->properties['from'] ?? false) ? 'obavezno' : 'opcionalno',
+                ($this->properties['to'] ?? false) ? 'obavezno' : 'opcionalno',
+            ),
             AuditAction::ImpersonationStarted => sprintf(
                 'Support ulaz: %s%s',
                 $tenantName,

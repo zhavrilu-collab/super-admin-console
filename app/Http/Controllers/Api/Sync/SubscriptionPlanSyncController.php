@@ -25,18 +25,7 @@ class SubscriptionPlanSyncController extends Controller
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get()
-            ->map(static fn (SubscriptionPlan $plan): array => [
-                'slug' => $plan->slug,
-                'name' => $plan->name,
-                'member_limit' => $plan->member_limit,
-                'badge_class' => $plan->badge_class,
-                'sort_order' => $plan->sort_order,
-                'is_default' => $plan->is_default,
-                'subdomain' => $plan->subdomain,
-                'custom_domain' => $plan->custom_domain,
-                'editable_sections' => $plan->editable_sections,
-                'cookie_banner' => $plan->cookie_banner,
-            ])
+            ->map(static fn (SubscriptionPlan $plan): array => $plan->toSyncArray())
             ->values();
 
         return response()->json([

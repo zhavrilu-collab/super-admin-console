@@ -22,6 +22,7 @@ class Tenant extends Model
         'status',
         'plan',
         'stripe_customer_id',
+        'sso_enforced',
         'synced_at',
     ];
 
@@ -32,6 +33,7 @@ class Tenant extends Model
     {
         return [
             'status' => TenantStatus::class,
+            'sso_enforced' => 'boolean',
             'synced_at' => 'datetime',
         ];
     }

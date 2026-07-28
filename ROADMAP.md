@@ -63,9 +63,9 @@ flowchart TB
 | Super-admin 2FA | ✅ | Obavezni TOTP |
 | Deploy scaffolding | ✅ | Docker, DEPLOY.md, dev skripte |
 | Jedinstveni IdP | ❌ | Odvojeni login u konzoli i modulu |
-| Global billing | ✅ | Stripe, dunning, self-service, MRR |
+| Global billing | ✅ | Stripe auto-catalog, checkout/portal u konzoli, dunning, MRR |
 | Tenant audit | ❌ | Schema u modulu, nema pisanja |
-| SSO / GDPR | ✅ | Google + Microsoft OAuth; GDPR export/erasure; org SSO enforce (D1.4) kasnije |
+| SSO / GDPR | ✅ | Google + Microsoft OAuth; org SSO enforce (D1.4); GDPR export/erasure |
 | Impersonation / feature flags | ❌ | Nema |
 | SaaS metrike (MRR/Churn) | ❌ | Samo brojanje tenanata |
 
@@ -187,9 +187,11 @@ flowchart TB
 |----|------|------|-----------|
 | C3.1 | Self-service portal u modulu | Promjena paketa, preuzimanje računa, kartice | P0 |
 | C3.2 | Sync plan iz Stripe u modul | Core push plan/status nakon webhooka | P0 |
-| C3.3 | MRR dashboard u konzoli | Mjesečni recurring revenue po aplikaciji | P1 |
-| C3.4 | Churn & LTV | Osnovne metrike iz Stripe + tenant lifecycle | P2 |
-| C3.5 | Per-seat / usage (future) | Broj aktivnih korisnika ili SMS/uplatnice | P3 |
+| C3.3 | MRR dashboard u konzoli | Mjesečni recurring revenue po aplikaciji | P1 | ✅ |
+| C3.4 | Churn & LTV | Osnovne metrike iz Stripe + tenant lifecycle | P2 | ✅ |
+| C3.5 | Per-seat / usage (future) | Broj aktivnih korisnika ili SMS/uplatnice — module usage push hook | P3 |
+| C3.6 | Modularni feature katalog paketa | `application_features` + `plans.features` JSON; dinamička forma | P1 | ✅ |
+| C3.7 | Statistika tab + drill-down | Pie chartovi (plan/status/feature/MRR) → lista tenanata | P1 | ✅ |
 
 ### Epic C4: Dokumenti po vertikali (modul)
 
@@ -209,6 +211,7 @@ flowchart TB
 | C-S3 | C2.1–C2.3 | Dunning + auto-suspend | ✅ |
 | C-S4 | C2.4, C3.1–C3.2 | Proration; self-service UI | ✅ |
 | C-S5 | C3.3–C3.4 | MRR/Churn dashboard | ✅ |
+| C-S6 | C3.6–C3.7 | Modularni paketi + Statistika drill-down | ✅ |
 
 ---
 
@@ -223,7 +226,7 @@ flowchart TB
 | D1.1 | Google OAuth | Laravel Socialite | P1 | ✅ (D-S2) |
 | D1.2 | Microsoft 365 / Azure AD | OIDC | P1 | ✅ (D-S4) |
 | D1.3 | Apple Sign In | P2 |
-| D1.4 | SSO po organizaciji | Enforce SSO za odabrane tenant-e | P2 |
+| D1.4 | SSO po organizaciji | Enforce SSO za odabrane tenant-e | P2 | ✅ |
 
 ### Epic D2: GDPR & compliance
 

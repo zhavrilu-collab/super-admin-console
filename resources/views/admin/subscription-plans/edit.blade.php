@@ -13,10 +13,24 @@
         <form method="POST" action="{{ route('admin.subscription-plans.update', $plan) }}">
             @csrf
             @method('PUT')
-            @include('admin.subscription-plans._form', ['plan' => $plan, 'badgeOptions' => $badgeOptions])
+            @include('admin.subscription-plans._form', [
+                'plan' => $plan,
+                'badgeOptions' => $badgeOptions,
+                'featureCatalog' => $featureCatalog,
+                'stripeConfigured' => $stripeConfigured ?? false,
+            ])
             <button type="submit" class="btn btn-dark">Spremi promjene</button>
             <a href="{{ route('admin.subscription-plans.index') }}" class="btn btn-outline-secondary">Odustani</a>
         </form>
+
+        @if($stripeConfigured ?? false)
+            <form method="POST" action="{{ route('admin.subscription-plans.sync-stripe', $plan) }}" class="mt-3">
+                @csrf
+                <button type="submit" class="btn btn-outline-primary btn-sm">
+                    Sync katalog u Stripe (bez spremanja ostalih polja)
+                </button>
+            </form>
+        @endif
     </div>
 </div>
 @endsection

@@ -51,18 +51,27 @@ class SubscriptionPlanCrudTest extends TestCase
             ->post(route('admin.subscription-plans.store'), [
                 'name' => 'Enterprise',
                 'slug' => 'enterprise',
-                'member_limit' => 1000,
                 'badge_class' => 'success',
                 'sort_order' => 10,
+                'features' => [
+                    'member_limit' => 1000,
+                    'subdomain' => '1',
+                    'custom_domain' => '1',
+                    'editable_sections' => '1',
+                    'cookie_banner' => '1',
+                ],
             ])
             ->assertRedirect(route('admin.subscription-plans.index'));
 
-        $this->assertDatabaseHas('subscription_plans', [
-            'application_id' => $application->id,
-            'slug' => 'enterprise',
-            'name' => 'Enterprise',
-            'member_limit' => 1000,
-        ]);
+        $plan = SubscriptionPlan::query()
+            ->where('application_id', $application->id)
+            ->where('slug', 'enterprise')
+            ->firstOrFail();
+
+        $this->assertSame(1000, $plan->member_limit);
+        $this->assertSame(1000, $plan->features['member_limit']);
+        $this->assertTrue($plan->features['subdomain']);
+        $this->assertTrue($plan->boolFeature('custom_domain'));
     }
 
     public function test_super_admin_can_create_plan_with_stripe_ids(): void

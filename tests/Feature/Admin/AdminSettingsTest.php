@@ -28,7 +28,8 @@ class AdminSettingsTest extends TestCase
             ->assertOk()
             ->assertSee('Postavke konzole')
             ->assertSee('E-mail (SMTP)')
-            ->assertSee('Stripe naplata');
+            ->assertSee('Stripe naplata')
+            ->assertSee('Uplata na poslovni račun');
 
         $this->actingAs($user)
             ->withSession([AdminSession::ACTIVE_APP_ID => 1])
@@ -75,5 +76,30 @@ class AdminSettingsTest extends TestCase
         $this->assertSame('sk_test_xyz', $settings->get(ConsoleSettingsService::STRIPE_SECRET_KEY));
         $this->assertSame('whsec_test', $settings->get(ConsoleSettingsService::STRIPE_WEBHOOK_SECRET));
         $this->assertTrue(app(StripeBillingService::class)->isConfigured());
+    }
+
+    public function test_super_admin_can_update_bank_transfer_settings(): void
+    {
+        $user = User::factory()->superAdmin()->create();
+
+        $this->actingAs($user)
+            ->withSession([AdminSession::ACTIVE_APP_ID => 1])
+            ->patch(route('admin.settings.mail'), [
+                'mail_mailer' => 'log',
+                'mail_from_address' => 'noreply@example.com',
+                'mail_from_name' => 'Admin',
+                'bank_transfer_enabled' => '1',
+                'bank_transfer_iban' => 'HR12 3456 7890 1234 5678 9',
+                'bank_transfer_recipient' => 'Test Primatelj d.o.o.',
+                'bank_transfer_payment_days' => 10,
+            ])
+            ->assertRedirect(route('admin.settings.index'));
+
+        $settings = app(ConsoleSettingsService::class);
+
+        $this->assertTrue($settings->bankTransferEnabled());
+        $this->assertSame('HR1234567890123456789', $settings->bankTransferIban());
+        $this->assertSame('Test Primatelj d.o.o.', $settings->bankTransferRecipient());
+        $this->assertSame(10, $settings->bankTransferPaymentDays());
     }
 }

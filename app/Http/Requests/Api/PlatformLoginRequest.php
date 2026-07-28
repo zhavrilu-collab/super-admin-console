@@ -19,6 +19,7 @@ class PlatformLoginRequest extends FormRequest
         return [
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
+            'application_slug' => ['nullable', 'string', 'max:100'],
         ];
     }
 }

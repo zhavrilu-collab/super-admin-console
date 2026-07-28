@@ -51,6 +51,7 @@ class PlatformLoginController extends Controller
             $user = $this->platformAuth->authenticateCredentials(
                 $credentials['email'],
                 $credentials['password'],
+                $applicationSlug !== '' ? $applicationSlug : null,
             );
         } catch (ValidationException $exception) {
             return back()
