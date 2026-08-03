@@ -20,14 +20,9 @@ class TenantSyncService
     ) {}
     public function resolveDriver(Application $application): TenantSyncDriver
     {
-        $driverClass = $application->sync_driver;
+        $driverClass = $this->resolveDriverClass($application);
 
-        if (! is_string($driverClass) || $driverClass === '') {
-            $config = config('saas_applications.applications.'.$application->slug);
-            $driverClass = is_array($config) ? ($config['driver'] ?? null) : null;
-        }
-
-        if (! is_string($driverClass) || ! is_subclass_of($driverClass, TenantSyncDriver::class)) {
+        if ($driverClass === null) {
             throw new RuntimeException('Sinkronizacija nije podržana za aplikaciju: '.$application->slug);
         }
 
@@ -36,11 +31,7 @@ class TenantSyncService
 
     public function supports(Application $application): bool
     {
-        if (is_string($application->sync_driver) && $application->sync_driver !== '') {
-            return is_subclass_of($application->sync_driver, TenantSyncDriver::class);
-        }
-
-        return is_array(config('saas_applications.applications.'.$application->slug));
+        return $this->resolveDriverClass($application) !== null;
     }
 
     public function isConfigured(Application $application): bool
@@ -65,6 +56,40 @@ class TenantSyncService
 
         return is_string($baseUrl) && $baseUrl !== ''
             && is_string($apiKey) && $apiKey !== '';
+    }
+
+    /**
+     * @return class-string<TenantSyncDriver>|null
+     */
+    private function resolveDriverClass(Application $application): ?string
+    {
+        $candidates = [];
+
+        if (is_string($application->sync_driver) && $application->sync_driver !== '') {
+            $candidates[] = $application->sync_driver;
+
+            $drivers = config('saas_applications.drivers', []);
+            if (is_array($drivers) && isset($drivers[$application->sync_driver]['class'])) {
+                $candidates[] = $drivers[$application->sync_driver]['class'];
+            }
+        }
+
+        $config = config('saas_applications.applications.'.$application->slug);
+        if (is_array($config) && isset($config['driver'])) {
+            $candidates[] = $config['driver'];
+        }
+
+        foreach ($candidates as $candidate) {
+            if (! is_string($candidate) || $candidate === '') {
+                continue;
+            }
+
+            if (is_subclass_of($candidate, TenantSyncDriver::class)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     public function pullForApplication(Application $application): int
@@ -153,8 +178,15 @@ class TenantSyncService
     {
         $tenant->loadMissing('application');
 
-        if ($tenant->application === null || ! $this->isConfigured($tenant->application)) {
-            return;
+        if ($tenant->application === null) {
+            throw new RuntimeException('Tenant nema povezanu aplikaciju za sinkronizaciju statusa.');
+        }
+
+        if (! $this->isConfigured($tenant->application)) {
+            throw new RuntimeException(
+                'Sinkronizacija statusa nije konfigurirana za aplikaciju "'.$tenant->application->slug.'". '
+                .'Provjeri sync driver, API URL i API ključ.'
+            );
         }
 
         $this->resolveDriver($tenant->application)->pushTenantStatus($tenant, $status);
@@ -164,8 +196,15 @@ class TenantSyncService
     {
         $tenant->loadMissing('application');
 
-        if ($tenant->application === null || ! $this->isConfigured($tenant->application)) {
-            return;
+        if ($tenant->application === null) {
+            throw new RuntimeException('Tenant nema povezanu aplikaciju za sinkronizaciju plana.');
+        }
+
+        if (! $this->isConfigured($tenant->application)) {
+            throw new RuntimeException(
+                'Sinkronizacija plana nije konfigurirana za aplikaciju "'.$tenant->application->slug.'". '
+                .'Provjeri sync driver, API URL i API ključ.'
+            );
         }
 
         $this->resolveDriver($tenant->application)->pushTenantPlan($tenant, $planSlug);
