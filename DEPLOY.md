@@ -2,6 +2,17 @@
 
 Checklist za produkcijski deploy oba sustava koji rade zajedno.
 
+## Produkcijski izvor koda (VPS)
+
+| Aplikacija | GitHub repo | Grana | Put na VPS |
+|---|---|---|---|
+| **Admin konzola** | `zhavrilu-collab/super-admin-console` | `main` | `/var/www/admin-console` |
+| **Udruga SaaS** | `zhavrilu-collab/Saas` → `udruga-saas/` | `master` | `/var/www/udruga-saas` |
+
+```bash
+bash /home/ubuntu/bin/deploy-from-git.sh master main
+```
+
 ## Arhitektura
 
 | Aplikacija | Uloga | Tipični port (dev) |
