@@ -1,5 +1,9 @@
 <div class="btn-group">
-    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+    <button type="button"
+            class="btn btn-sm btn-outline-secondary dropdown-toggle"
+            data-bs-toggle="dropdown"
+            data-bs-popper-config='{"strategy":"fixed"}'
+            aria-expanded="false">
         Akcije
     </button>
     <ul class="dropdown-menu dropdown-menu-end">
@@ -63,5 +67,16 @@
                 </form>
             </li>
         @endif
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <form method="POST"
+                  action="{{ route('admin.tenants.destroy', $tenant) }}"
+                  class="js-confirm-action"
+                  data-confirm="Trajno obrisati tenant {{ $tenant->name }} ({{ $tenant->slug }})? Ovo briše podatke u konzoli i u SaaS aplikaciji.">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="dropdown-item text-danger">Obriši tenant</button>
+            </form>
+        </li>
     </ul>
 </div>

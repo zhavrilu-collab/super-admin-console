@@ -82,6 +82,11 @@ class AuditLog extends Model
                 ($this->properties['from'] ?? false) ? 'obavezno' : 'opcionalno',
                 ($this->properties['to'] ?? false) ? 'obavezno' : 'opcionalno',
             ),
+            AuditAction::TenantDeleted => sprintf(
+                'Obrisan tenant: %s (%s)',
+                $tenantName,
+                $this->properties['tenant_slug'] ?? '—',
+            ),
             AuditAction::ImpersonationStarted => sprintf(
                 'Support ulaz: %s%s',
                 $tenantName,

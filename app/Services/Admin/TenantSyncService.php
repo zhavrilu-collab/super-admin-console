@@ -210,6 +210,24 @@ class TenantSyncService
         $this->resolveDriver($tenant->application)->pushTenantPlan($tenant, $planSlug);
     }
 
+    public function deleteRemote(Tenant $tenant): void
+    {
+        $tenant->loadMissing('application');
+
+        if ($tenant->application === null) {
+            throw new RuntimeException('Tenant nema povezanu aplikaciju za brisanje.');
+        }
+
+        if (! $this->isConfigured($tenant->application)) {
+            throw new RuntimeException(
+                'Sinkronizacija brisanja nije konfigurirana za aplikaciju "'.$tenant->application->slug.'". '
+                .'Provjeri sync driver, API URL i API ključ.'
+            );
+        }
+
+        $this->resolveDriver($tenant->application)->deleteTenant($tenant);
+    }
+
     /**
      * @param  array<string, mixed>  $remoteTenant
      */

@@ -75,6 +75,9 @@ Route::middleware(['auth', 'admin', 'require-super-admin-2fa'])
         Route::patch('/tenants/{tenant}/sso', [AdminTenantController::class, 'updateSso'])
             ->middleware('throttle:admin-moderation')
             ->name('tenants.update-sso');
+        Route::delete('/tenants/{tenant}', [AdminTenantController::class, 'destroy'])
+            ->middleware('throttle:admin-moderation')
+            ->name('tenants.destroy');
         Route::post('/tenants/{tenant}/impersonate', [AdminTenantImpersonationController::class, 'store'])
             ->middleware('throttle:admin-moderation')
             ->name('tenants.impersonate');

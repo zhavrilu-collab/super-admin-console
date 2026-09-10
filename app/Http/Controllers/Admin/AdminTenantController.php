@@ -18,6 +18,7 @@ use App\Services\Admin\SubscriptionPlanService;
 use App\Services\Billing\StripeBillingService;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 use RuntimeException;
 
@@ -113,6 +114,23 @@ class AdminTenantController extends Controller
             ->with('status', $next
                 ? 'SSO prijava je sada obavezna za ovaj tenant.'
                 : 'SSO prijava više nije obavezna za ovaj tenant.');
+    }
+
+    public function destroy(Request $request, Tenant $tenant): RedirectResponse
+    {
+        try {
+            $this->adminSaaSService->deleteTenant($tenant->id, $request->user());
+        } catch (RuntimeException|ConnectionException $exception) {
+            return redirect()
+                ->back()
+                ->with('warning', $exception instanceof ConnectionException
+                    ? 'SaaS aplikacija ne odgovara. Provjerite API URL i mrežni pristup.'
+                    : $exception->getMessage());
+        }
+
+        return redirect()
+            ->route('admin.dashboard')
+            ->with('status', 'Tenant je obrisan.');
     }
 
     public function startBillingCheckout(StartTenantBillingCheckoutRequest $request, Tenant $tenant): RedirectResponse

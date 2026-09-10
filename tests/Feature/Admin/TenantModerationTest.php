@@ -75,6 +75,24 @@ class TenantModerationTest extends TestCase
         ]);
     }
 
+    public function test_super_admin_can_delete_tenant_without_remote_sync(): void
+    {
+        $tenant = $this->createTenant($this->activeApplication, TenantStatus::Pending);
+
+        $response = $this->actingAs($this->superAdmin)
+            ->withSession([AdminSession::ACTIVE_APP_ID => $this->activeApplication->id])
+            ->delete(route('admin.tenants.destroy', $tenant));
+
+        $response->assertRedirect(route('admin.dashboard'));
+        $this->assertDatabaseMissing('tenants', [
+            'id' => $tenant->id,
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'tenant.deleted',
+            'subject_id' => $tenant->id,
+        ]);
+    }
+
     public function test_cross_app_tenant_update_is_rejected(): void
     {
         $tenant = $this->createTenant($this->otherApplication, TenantStatus::Pending);

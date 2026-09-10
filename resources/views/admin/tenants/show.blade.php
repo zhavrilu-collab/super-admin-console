@@ -107,6 +107,17 @@
                         SaaS URL nije dostupan — provjerite API URL aplikacije u postavkama.
                     </p>
                 @endif
+
+                <hr class="my-3">
+
+                <form method="POST"
+                      action="{{ route('admin.tenants.destroy', $tenant) }}"
+                      class="js-confirm-action"
+                      data-confirm="Trajno obrisati tenant {{ $tenant->name }} ({{ $tenant->slug }})? Ovo briše podatke u konzoli i u SaaS aplikaciji.">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Obriši tenant</button>
+                </form>
             </div>
         </div>
     </div>

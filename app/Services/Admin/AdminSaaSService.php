@@ -186,6 +186,19 @@ class AdminSaaSService
         return $tenant;
     }
 
+    public function deleteTenant(int $tenantId, User $actor): void
+    {
+        $tenant = $this->findTenantForActiveApp($tenantId);
+        $tenant->load('application');
+
+        if ($tenant->application !== null && $this->tenantSyncService->isConfigured($tenant->application)) {
+            $this->tenantSyncService->deleteRemote($tenant);
+        }
+
+        $this->auditLogService->logTenantDeleted($actor, $tenant);
+        $tenant->delete();
+    }
+
     public function syncActiveApplication(): int
     {
         $application = $this->getActiveApplication();

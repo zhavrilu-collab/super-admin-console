@@ -76,6 +76,26 @@ class AuditLogService
         ]);
     }
 
+    public function logTenantDeleted(User $actor, Tenant $tenant): AuditLog
+    {
+        return AuditLog::query()->create([
+            'user_id' => $actor->id,
+            'application_id' => $tenant->application_id,
+            'action' => AuditAction::TenantDeleted,
+            'subject_type' => Tenant::class,
+            'subject_id' => $tenant->id,
+            'properties' => [
+                'tenant_name' => $tenant->name,
+                'tenant_slug' => $tenant->slug,
+                'external_id' => $tenant->external_id,
+                'status' => $tenant->status instanceof TenantStatus
+                    ? $tenant->status->value
+                    : (string) $tenant->status,
+                'plan' => $tenant->plan,
+            ],
+        ]);
+    }
+
     public function logImpersonationStarted(ImpersonationSession $session): AuditLog
     {
         $session->loadMissing(['admin', 'tenant']);

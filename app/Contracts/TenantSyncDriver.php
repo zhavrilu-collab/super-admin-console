@@ -17,4 +17,6 @@ interface TenantSyncDriver
     public function pushTenantStatus(Tenant $tenant, TenantStatus $status): void;
 
     public function pushTenantPlan(Tenant $tenant, string $planSlug): void;
+
+    public function deleteTenant(Tenant $tenant): void;
 }

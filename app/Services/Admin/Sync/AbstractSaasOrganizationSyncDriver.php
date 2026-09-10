@@ -55,6 +55,38 @@ abstract class AbstractSaasOrganizationSyncDriver implements TenantSyncDriver
         $this->patchOrganization($tenant, $payload);
     }
 
+    public function deleteTenant(Tenant $tenant): void
+    {
+        $tenant->loadMissing('application');
+
+        if ($tenant->application === null) {
+            throw new RuntimeException('Tenant nema povezanu aplikaciju za brisanje u SaaS aplikaciji.');
+        }
+
+        $config = $this->configFor($tenant->application);
+
+        $externalId = is_string($tenant->external_id) && $tenant->external_id !== ''
+            ? $tenant->external_id
+            : $this->findOrganizationIdBySlug($tenant, $config);
+
+        if ($externalId === null || $externalId === '') {
+            return;
+        }
+
+        try {
+            $this->sendDelete($config, $externalId);
+        } catch (RequestException $exception) {
+            if ($exception->response?->status() === 404) {
+                return;
+            }
+
+            throw new RuntimeException(
+                $this->syncFailureMessage($tenant, $exception),
+                previous: $exception,
+            );
+        }
+    }
+
     /**
      * @param  array<string, string>  $payload
      */
@@ -95,6 +127,16 @@ abstract class AbstractSaasOrganizationSyncDriver implements TenantSyncDriver
                 rtrim($config['base_url'], '/').'/api/admin/organizations/'.$externalId,
                 $payload,
             )
+            ->throw();
+    }
+
+    /**
+     * @param  array{base_url: string, api_key: string}  $config
+     */
+    private function sendDelete(array $config, string $externalId): void
+    {
+        $this->http($config['api_key'], $config['base_url'])
+            ->delete(rtrim($config['base_url'], '/').'/api/admin/organizations/'.$externalId)
             ->throw();
     }
 
