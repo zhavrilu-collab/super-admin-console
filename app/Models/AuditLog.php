@@ -61,37 +61,40 @@ class AuditLog extends Model
 
     public function summary(): string
     {
-        $tenantName = $this->properties['tenant_name'] ?? 'Tenant';
+        $properties = is_array($this->properties) ? $this->properties : [];
+        $tenantName = is_string($properties['tenant_name'] ?? null) && $properties['tenant_name'] !== ''
+            ? $properties['tenant_name']
+            : 'Tenant';
 
         return match ($this->action) {
             AuditAction::TenantStatusChanged => sprintf(
                 '%s: %s → %s',
                 $tenantName,
-                TenantStatus::from($this->properties['from'])->label(),
-                TenantStatus::from($this->properties['to'])->label(),
+                $this->tenantStatusLabel($properties['from'] ?? null),
+                $this->tenantStatusLabel($properties['to'] ?? null),
             ),
             AuditAction::TenantPlanChanged => sprintf(
                 '%s: %s → %s',
                 $tenantName,
-                $this->planLabelFromAuditProperty('from'),
-                $this->planLabelFromAuditProperty('to'),
+                $this->planLabelFromAuditProperty('from', $properties),
+                $this->planLabelFromAuditProperty('to', $properties),
             ),
             AuditAction::TenantSsoChanged => sprintf(
                 '%s: SSO %s → %s',
                 $tenantName,
-                ($this->properties['from'] ?? false) ? 'obavezno' : 'opcionalno',
-                ($this->properties['to'] ?? false) ? 'obavezno' : 'opcionalno',
+                ($properties['from'] ?? false) ? 'obavezno' : 'opcionalno',
+                ($properties['to'] ?? false) ? 'obavezno' : 'opcionalno',
             ),
             AuditAction::TenantDeleted => sprintf(
                 'Obrisan tenant: %s (%s)',
                 $tenantName,
-                $this->properties['tenant_slug'] ?? '—',
+                $properties['tenant_slug'] ?? '—',
             ),
             AuditAction::ImpersonationStarted => sprintf(
                 'Support ulaz: %s%s',
                 $tenantName,
-                isset($this->properties['reason']) && $this->properties['reason'] !== ''
-                    ? ' ('.$this->properties['reason'].')'
+                isset($properties['reason']) && $properties['reason'] !== ''
+                    ? ' ('.$properties['reason'].')'
                     : '',
             ),
             AuditAction::ImpersonationEnded => sprintf(
@@ -104,7 +107,7 @@ class AuditLog extends Model
             ),
             AuditAction::BillingDunningReminderSent => sprintf(
                 'Podsjetnik (%s. dan): %s',
-                $this->properties['reminder_day'] ?? '?',
+                $properties['reminder_day'] ?? '?',
                 $tenantName,
             ),
             AuditAction::BillingDunningSuspended => sprintf(
@@ -113,40 +116,57 @@ class AuditLog extends Model
             ),
             AuditAction::BillingDunningResolved => sprintf(
                 'Dunning riješen (%s): %s',
-                DunningResolution::tryFrom((string) ($this->properties['resolution'] ?? ''))?->label()
-                    ?? ($this->properties['resolution'] ?? '—'),
+                DunningResolution::tryFrom((string) ($properties['resolution'] ?? ''))?->label()
+                    ?? ($properties['resolution'] ?? '—'),
                 $tenantName,
             ),
             AuditAction::AccountDeletionRequested => sprintf(
                 'GDPR brisanje zakazano: %s',
-                $this->properties['email'] ?? 'korisnik',
+                $properties['email'] ?? 'korisnik',
             ),
             AuditAction::AccountDeletionCancelled => sprintf(
                 'GDPR brisanje otkazano: %s',
-                $this->properties['email'] ?? 'korisnik',
+                $properties['email'] ?? 'korisnik',
             ),
             AuditAction::AccountDeletionCompleted => sprintf(
                 'GDPR brisanje izvršeno: %s',
-                $this->properties['email'] ?? 'korisnik',
+                $properties['email'] ?? 'korisnik',
             ),
             AuditAction::SuperAdminCreated => sprintf(
                 'Super-admin kreiran: %s',
-                $this->properties['email'] ?? '—',
+                $properties['email'] ?? '—',
             ),
             AuditAction::SuperAdminUpdated => sprintf(
                 'Super-admin ažuriran: %s',
-                $this->properties['email'] ?? '—',
+                $properties['email'] ?? '—',
             ),
             AuditAction::SuperAdminDeleted => sprintf(
                 'Super-admin obrisan: %s',
-                $this->properties['email'] ?? '—',
+                $properties['email'] ?? '—',
             ),
+            default => $this->action?->label() ?? 'Nepoznata akcija',
         };
     }
 
-    private function planLabelFromAuditProperty(string $key): string
+    private function tenantStatusLabel(mixed $value): string
     {
-        $slug = $this->properties[$key] ?? '';
+        if (! is_string($value) || $value === '') {
+            return '—';
+        }
+
+        return TenantStatus::tryFrom($value)?->label() ?? $value;
+    }
+
+    /**
+     * @param  array<string, mixed>  $properties
+     */
+    private function planLabelFromAuditProperty(string $key, array $properties = []): string
+    {
+        if ($properties === []) {
+            $properties = is_array($this->properties) ? $this->properties : [];
+        }
+
+        $slug = $properties[$key] ?? '';
 
         if (! is_string($slug) || $slug === '') {
             return '—';

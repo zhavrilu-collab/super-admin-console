@@ -122,6 +122,24 @@ class AdminAuditLogTest extends TestCase
         $response->assertSee('Promjena statusa tenanta');
     }
 
+    public function test_audit_log_page_survives_null_properties(): void
+    {
+        AuditLog::query()->create([
+            'user_id' => $this->superAdmin->id,
+            'application_id' => $this->activeApplication->id,
+            'action' => AuditAction::TenantStatusChanged,
+            'subject_type' => Tenant::class,
+            'subject_id' => 1,
+            'properties' => null,
+        ]);
+
+        $this->actingAs($this->superAdmin)
+            ->withSession([AdminSession::ACTIVE_APP_ID => $this->activeApplication->id])
+            ->get(route('admin.audit.index'))
+            ->assertOk()
+            ->assertSee('Promjena statusa tenanta');
+    }
+
     public function test_non_super_admin_cannot_access_audit_log_page(): void
     {
         $user = User::factory()->create();
