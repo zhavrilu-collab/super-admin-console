@@ -8,9 +8,11 @@ Checklist za produkcijski deploy oba sustava koji rade zajedno.
 |---|---|---|---|
 | **Admin konzola** | `zhavrilu-collab/super-admin-console` | `main` | `/var/www/admin-console` |
 | **Udruga SaaS** | `zhavrilu-collab/Saas` → `udruga-saas/` | `master` | `/var/www/udruga-saas` |
+| **HR SaaS** | `zhavrilu-collab/SuperSkyCrew` | `cursor/hr-saas-kadar-i-evidencija` | `/var/www/hr-saas` |
 
 ```bash
 bash /home/ubuntu/bin/deploy-from-git.sh master main
+bash /home/ubuntu/bin/deploy-hr-from-git.sh
 ```
 
 ## Arhitektura
@@ -19,6 +21,8 @@ bash /home/ubuntu/bin/deploy-from-git.sh master main
 |---|---|---|
 | **multi-tenant console** | Super-Admin metadata, moderacija, sync | 8001 |
 | **udruga-saas** | Tenant aplikacija (udruga) | 8000 |
+| **smb-saas** | Tenant aplikacija (SMB) | 8002 |
+| **hr-saas** | Tenant aplikacija (HR / evidencija RV) | 8004 |
 
 **Integracija:**
 - Console → SaaS: `GET/PATCH /api/admin/organizations` (Bearer `ADMIN_SYNC_API_KEY`)
@@ -67,6 +71,8 @@ TRUSTED_PROXIES=*
 
 UDRUGA_SAAS_API_URL=https://app.example.hr
 UDRUGA_SAAS_API_KEY=<isti kao ADMIN_SYNC_API_KEY na SaaS-u>
+HR_SAAS_API_URL=https://hr.superskytech.com
+HR_SAAS_API_KEY=<isti kao ADMIN_SYNC_API_KEY na HR-u>
 SAAS_WEBHOOK_SECRET=<isti kao ADMIN_CONSOLE_WEBHOOK_SECRET na SaaS-u>
 
 # Same-VPS behind SSL-inspecting firewall / hairpin NAT:
@@ -78,6 +84,7 @@ SAAS_HTTP_RESOLVE_LOOPBACK=true
 
 - [ ] U `/admin/postavke` postavi SMTP (From adresa, host, port)
 - [ ] U `/admin/aplikacije` provjeri API URL i sync ključ za `udruga-saas`
+- [ ] Za HR: `HR_SAAS_API_URL=https://hr.superskytech.com` pa `php artisan db:seed --class=HrApplicationSeeder --force` (ne `AdminConsoleSeeder`)
 - [ ] Super-admin uključi **2FA** na `/admin/sigurnost`
 - [ ] `php artisan config:cache`
 - [ ] `php artisan route:cache`

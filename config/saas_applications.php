@@ -22,6 +22,10 @@ return [
             'label' => 'SMB SaaS API (standardni)',
             'class' => \App\Services\Admin\Sync\SmbSaasSyncDriver::class,
         ],
+        'hr_saas' => [
+            'label' => 'HR SaaS API (standardni)',
+            'class' => \App\Services\Admin\Sync\HrSaasSyncDriver::class,
+        ],
     ],
 
     'applications' => [
@@ -36,6 +40,12 @@ return [
             'driver' => \App\Services\Admin\Sync\SmbSaasSyncDriver::class,
             'base_url' => env('SMB_SAAS_API_URL', 'http://127.0.0.1:8002'),
             'api_key' => env('SMB_SAAS_API_KEY'),
+        ],
+
+        'hr-saas' => [
+            'driver' => \App\Services\Admin\Sync\HrSaasSyncDriver::class,
+            'base_url' => env('HR_SAAS_API_URL', 'http://127.0.0.1:8004'),
+            'api_key' => env('HR_SAAS_API_KEY'),
         ],
 
     ],

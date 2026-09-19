@@ -29,9 +29,11 @@ class ApplicationFeatureCatalogService
 
     public function seedDefaults(Application $application): void
     {
-        $defaults = $this->isSmbApplication($application)
-            ? $this->smbCatalogDefinitions()
-            : $this->udrugaCatalogDefinitions();
+        $defaults = match ($this->catalogKind($application)) {
+            'smb' => $this->smbCatalogDefinitions(),
+            'hr' => $this->hrCatalogDefinitions(),
+            default => $this->udrugaCatalogDefinitions(),
+        };
 
         foreach ($defaults as $feature) {
             ApplicationFeature::query()->updateOrCreate(
@@ -57,11 +59,11 @@ class ApplicationFeatureCatalogService
      */
     public function defaultFeaturesForPlanSlug(Application $application, string $slug): array
     {
-        if ($this->isSmbApplication($application)) {
-            return $this->smbPlanFeatureDefaults($slug);
-        }
-
-        return $this->udrugaPlanFeatureDefaults($slug);
+        return match ($this->catalogKind($application)) {
+            'smb' => $this->smbPlanFeatureDefaults($slug),
+            'hr' => $this->hrPlanFeatureDefaults($slug),
+            default => $this->udrugaPlanFeatureDefaults($slug),
+        };
     }
 
     /**
@@ -93,11 +95,11 @@ class ApplicationFeatureCatalogService
     public function assertDeletable(ApplicationFeature $feature): void
     {
         $application = $feature->application;
-        $builtinKeys = collect(
-            $this->isSmbApplication($application)
-                ? $this->smbCatalogDefinitions()
-                : $this->udrugaCatalogDefinitions()
-        )->pluck('key')->all();
+        $builtinKeys = collect(match ($this->catalogKind($application)) {
+            'smb' => $this->smbCatalogDefinitions(),
+            'hr' => $this->hrCatalogDefinitions(),
+            default => $this->udrugaCatalogDefinitions(),
+        })->pluck('key')->all();
 
         if (in_array($feature->key, $builtinKeys, true)) {
             throw ValidationException::withMessages([
@@ -131,9 +133,15 @@ class ApplicationFeatureCatalogService
         }
     }
 
-    private function isSmbApplication(Application $application): bool
+    private function catalogKind(Application $application): string
     {
-        return str_contains(strtolower($application->slug), 'smb');
+        $slug = strtolower($application->slug);
+
+        return match (true) {
+            str_contains($slug, 'smb') => 'smb',
+            str_contains($slug, 'hr-saas') || $slug === 'hr' => 'hr',
+            default => 'udruga',
+        };
     }
 
     /**
@@ -394,6 +402,83 @@ class ApplicationFeatureCatalogService
                 'team_management' => true,
                 'sales_module' => true,
                 'finance_module' => false,
+                'subdomain' => true,
+                'custom_domain' => false,
+            ],
+            default => $premium,
+        };
+    }
+
+    /**
+     * @return list<array{key: string, label: string, description?: string|null, type: ApplicationFeatureType, unit?: string|null, sort_order: int}>
+     */
+    public function hrCatalogDefinitions(): array
+    {
+        $B = ApplicationFeatureType::Boolean;
+        $L = ApplicationFeatureType::Limit;
+
+        return [
+            ['key' => 'employee_limit', 'label' => 'Limit aktivnih osoba', 'description' => 'Maksimalan broj osoba u evidenciji (radnici, ustupljeni, FO, honorarci)', 'type' => $L, 'unit' => 'people', 'sort_order' => 10],
+            ['key' => 'team_management', 'label' => 'Upravljanje timom / pozivnice', 'type' => $B, 'sort_order' => 20],
+            ['key' => 'clock_mobile', 'label' => 'Prijava s mobitela (PWA)', 'type' => $B, 'sort_order' => 30],
+            ['key' => 'clock_kiosk', 'label' => 'Kiosk / dijeljeni tablet', 'type' => $B, 'sort_order' => 31],
+            ['key' => 'clock_geofence', 'label' => 'Geofence na lokaciji', 'type' => $B, 'sort_order' => 32],
+            ['key' => 'shift_planning', 'label' => 'Plan smjena i prijenos u šihtericu', 'type' => $B, 'sort_order' => 40],
+            ['key' => 'workflow', 'label' => 'Radni slijed odobrenja', 'type' => $B, 'sort_order' => 41],
+            ['key' => 'document_templates', 'label' => 'Predlošci kadrovskih akata', 'type' => $B, 'sort_order' => 50],
+            ['key' => 'inspection_export', 'label' => 'Inspekcijski izvoz evidencije', 'type' => $B, 'sort_order' => 51],
+            ['key' => 'volunteer_module', 'label' => 'Volonteri (udruge)', 'type' => $B, 'sort_order' => 60],
+            ['key' => 'subdomain', 'label' => 'Poddomena', 'type' => $B, 'sort_order' => 70],
+            ['key' => 'custom_domain', 'label' => 'Vlastita domena', 'type' => $B, 'sort_order' => 71],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function hrPlanFeatureDefaults(string $slug): array
+    {
+        $premium = [
+            'employee_limit' => null,
+            'team_management' => true,
+            'clock_mobile' => true,
+            'clock_kiosk' => true,
+            'clock_geofence' => true,
+            'shift_planning' => true,
+            'workflow' => true,
+            'document_templates' => true,
+            'inspection_export' => true,
+            'volunteer_module' => true,
+            'subdomain' => true,
+            'custom_domain' => true,
+        ];
+
+        return match ($slug) {
+            'basic' => [
+                'employee_limit' => 10,
+                'team_management' => true,
+                'clock_mobile' => true,
+                'clock_kiosk' => false,
+                'clock_geofence' => false,
+                'shift_planning' => false,
+                'workflow' => true,
+                'document_templates' => false,
+                'inspection_export' => false,
+                'volunteer_module' => false,
+                'subdomain' => false,
+                'custom_domain' => false,
+            ],
+            'standard' => [
+                'employee_limit' => 50,
+                'team_management' => true,
+                'clock_mobile' => true,
+                'clock_kiosk' => true,
+                'clock_geofence' => true,
+                'shift_planning' => true,
+                'workflow' => true,
+                'document_templates' => true,
+                'inspection_export' => true,
+                'volunteer_module' => false,
                 'subdomain' => true,
                 'custom_domain' => false,
             ],

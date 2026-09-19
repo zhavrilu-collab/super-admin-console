@@ -66,6 +66,19 @@ class AdminConsoleSeeder extends Seeder
 
         app(SubscriptionPlanService::class)->seedSmbDefaults($smbSaas);
 
+        $hrSaas = Application::query()->updateOrCreate(
+            ['slug' => 'hr-saas'],
+            [
+                'name' => 'HR SaaS',
+                'description' => 'Multi-tenant SaaS za upravljanje ljudskim resursima i evidenciju radnog vremena.',
+                'sync_driver' => \App\Services\Admin\Sync\HrSaasSyncDriver::class,
+                'api_base_url' => (string) config('saas_applications.applications.hr-saas.base_url', 'http://127.0.0.1:8004'),
+                'api_sync_key' => (string) (config('saas_applications.applications.hr-saas.api_key') ?: 'dev-sync-key-change-me'),
+            ],
+        );
+
+        app(SubscriptionPlanService::class)->seedHrDefaults($hrSaas);
+
         $opgSaas = Application::query()->where('slug', 'opg-saas')->first();
         if ($opgSaas !== null) {
             app(SubscriptionPlanService::class)->seedDefaults($opgSaas);
