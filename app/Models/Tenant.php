@@ -21,6 +21,7 @@ class Tenant extends Model
         'slug',
         'status',
         'plan',
+        'trial_ends_at',
         'stripe_customer_id',
         'sso_enforced',
         'synced_at',
@@ -35,7 +36,23 @@ class Tenant extends Model
             'status' => TenantStatus::class,
             'sso_enforced' => 'boolean',
             'synced_at' => 'datetime',
+            'trial_ends_at' => 'datetime',
         ];
+    }
+
+    public function onTrial(): bool
+    {
+        return $this->trial_ends_at !== null
+            && $this->trial_ends_at->isFuture();
+    }
+
+    public function trialDaysRemaining(): int
+    {
+        if (! $this->onTrial()) {
+            return 0;
+        }
+
+        return max(0, (int) now()->startOfDay()->diffInDays($this->trial_ends_at->copy()->startOfDay(), false));
     }
 
     public function resolvedSubscriptionPlan(): ?SubscriptionPlan

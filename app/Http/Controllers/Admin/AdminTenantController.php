@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\BulkUpdateTenantStatusRequest;
 use App\Http\Requests\Admin\ChangeTenantBillingPlanRequest;
+use App\Http\Requests\Admin\ExtendTenantTrialRequest;
 use App\Http\Requests\Admin\StartTenantBillingCheckoutRequest;
 use App\Http\Requests\Admin\UpdateTenantPlanRequest;
 use App\Http\Requests\Admin\UpdateTenantSsoRequest;
@@ -96,6 +97,27 @@ class AdminTenantController extends Controller
         return redirect()
             ->back()
             ->with('status', 'Plan pretplate je ažuriran.');
+    }
+
+    public function extendTrial(ExtendTenantTrialRequest $request, Tenant $tenant): RedirectResponse
+    {
+        try {
+            $this->adminSaaSService->extendTenantTrial(
+                $tenant->id,
+                $request->days(),
+                $request->user(),
+            );
+        } catch (RuntimeException|ConnectionException $exception) {
+            return redirect()
+                ->back()
+                ->with('warning', $exception instanceof ConnectionException
+                    ? 'SaaS aplikacija ne odgovara. Provjerite API URL i mrežni pristup.'
+                    : $exception->getMessage());
+        }
+
+        return redirect()
+            ->back()
+            ->with('status', 'Probni period je produljen za '.$request->days().' dana.');
     }
 
     public function updateSso(UpdateTenantSsoRequest $request, Tenant $tenant): RedirectResponse

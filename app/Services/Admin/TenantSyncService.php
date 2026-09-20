@@ -210,6 +210,24 @@ class TenantSyncService
         $this->resolveDriver($tenant->application)->pushTenantPlan($tenant, $planSlug);
     }
 
+    public function pushTrialExtension(Tenant $tenant, int $days): array
+    {
+        $tenant->loadMissing('application');
+
+        if ($tenant->application === null) {
+            throw new RuntimeException('Tenant nema povezanu aplikaciju za produljenje triala.');
+        }
+
+        if (! $this->isConfigured($tenant->application)) {
+            throw new RuntimeException(
+                'Sinkronizacija triala nije konfigurirana za aplikaciju "'.$tenant->application->slug.'". '
+                .'Provjeri sync driver, API URL i API ključ.'
+            );
+        }
+
+        return $this->resolveDriver($tenant->application)->pushTenantTrialExtension($tenant, $days);
+    }
+
     public function deleteRemote(Tenant $tenant): void
     {
         $tenant->loadMissing('application');
@@ -252,6 +270,7 @@ class TenantSyncService
                 'slug' => (string) ($remoteTenant['slug'] ?? 'tenant-'.$externalId),
                 'status' => (string) ($remoteTenant['status'] ?? TenantStatus::Pending->value),
                 'plan' => (string) ($remoteTenant['plan'] ?? $defaultPlan),
+                'trial_ends_at' => $remoteTenant['trial_ends_at'] ?? null,
                 'synced_at' => now(),
             ],
         );

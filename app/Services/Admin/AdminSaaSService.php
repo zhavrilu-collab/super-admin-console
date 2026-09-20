@@ -186,6 +186,34 @@ class AdminSaaSService
         return $tenant;
     }
 
+    public function extendTenantTrial(int $tenantId, int $days, User $actor): Tenant
+    {
+        $tenant = $this->findTenantForActiveApp($tenantId);
+        $previousEndsAt = $tenant->trial_ends_at?->toIso8601String();
+
+        $tenant->load('application');
+        $remote = $this->tenantSyncService->pushTrialExtension($tenant, $days);
+
+        if (! empty($remote['trial_ends_at'])) {
+            $tenant->trial_ends_at = $remote['trial_ends_at'];
+        }
+
+        if (! empty($remote['plan'])) {
+            $tenant->plan = $remote['plan'];
+        }
+
+        $tenant->save();
+        $this->auditLogService->logTenantTrialExtended(
+            $actor,
+            $tenant,
+            $previousEndsAt,
+            $tenant->trial_ends_at?->toIso8601String(),
+            $days,
+        );
+
+        return $tenant;
+    }
+
     public function deleteTenant(int $tenantId, User $actor): void
     {
         $tenant = $this->findTenantForActiveApp($tenantId);

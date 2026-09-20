@@ -72,6 +72,9 @@ Route::middleware(['auth', 'admin', 'require-super-admin-2fa'])
         Route::patch('/tenants/{tenant}/plan', [AdminTenantController::class, 'updatePlan'])
             ->middleware('throttle:admin-moderation')
             ->name('tenants.update-plan');
+        Route::patch('/tenants/{tenant}/trial', [AdminTenantController::class, 'extendTrial'])
+            ->middleware('throttle:admin-moderation')
+            ->name('tenants.extend-trial');
         Route::patch('/tenants/{tenant}/sso', [AdminTenantController::class, 'updateSso'])
             ->middleware('throttle:admin-moderation')
             ->name('tenants.update-sso');
@@ -84,6 +87,7 @@ Route::middleware(['auth', 'admin', 'require-super-admin-2fa'])
 
         Route::get('/postavke', [AdminSettingsController::class, 'index'])->name('settings.index');
         Route::patch('/postavke/mail', [AdminSettingsController::class, 'updateMail'])->name('settings.mail');
+        Route::post('/postavke/mail/test', [AdminSettingsController::class, 'sendTestMail'])->name('settings.mail.test');
 
         Route::resource('aplikacije', AdminApplicationController::class)
             ->parameters(['aplikacije' => 'application'])

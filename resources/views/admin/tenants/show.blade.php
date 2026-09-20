@@ -43,10 +43,72 @@
     <div class="col-md-4">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body">
-                <div class="text-muted small mb-1">Zadnja sinkronizacija</div>
-                <div class="fw-semibold">
-                    {{ $tenant->synced_at?->format('d.m.Y. H:i') ?? '—' }}
-                </div>
+                <div class="text-muted small mb-1">Probni period</div>
+                @if($tenant->onTrial())
+                    <div class="fw-semibold">
+                        Još {{ $tenant->trialDaysRemaining() }} dana
+                    </div>
+                    <div class="small text-muted">
+                        Istječe {{ $tenant->trial_ends_at?->format('d.m.Y.') }}
+                    </div>
+                @elseif($tenant->trial_ends_at)
+                    <div class="fw-semibold text-warning">Istekao</div>
+                    <div class="small text-muted">
+                        {{ $tenant->trial_ends_at->format('d.m.Y.') }}
+                    </div>
+                @else
+                    <div class="fw-semibold text-muted">Nije pokrenut</div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h2 class="h6 mb-0">Produljenje probnog perioda</h2>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">
+                    Produljuje trial u SaaS aplikaciji. Ako je trial već istekao, ponovno ga pokreće
+                    i vraća plan na standardni trial paket (ako nema Stripe pretplate).
+                </p>
+                <form method="POST"
+                      action="{{ route('admin.tenants.extend-trial', $tenant) }}"
+                      class="row g-2 align-items-end js-confirm-action"
+                      data-confirm="Produljiti probni period za tenant {{ $tenant->name }}?">
+                    @csrf
+                    @method('PATCH')
+                    <div class="col-sm-3 col-md-2">
+                        <label class="form-label small mb-1" for="trial-days">Broj dana</label>
+                        <input type="number"
+                               name="days"
+                               id="trial-days"
+                               class="form-control form-control-sm @error('days') is-invalid @enderror"
+                               min="1"
+                               max="365"
+                               value="{{ old('days', 14) }}"
+                               required>
+                        @error('days')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="col-sm-9 col-md-10">
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">Produlji trial</button>
+                            @foreach([7, 14, 30] as $preset)
+                                <button type="submit"
+                                        name="days"
+                                        value="{{ $preset }}"
+                                        class="btn btn-outline-secondary btn-sm">
+                                    +{{ $preset }} dana
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -77,6 +139,9 @@
 
                     <dt class="col-sm-4 text-muted">Ažuriran</dt>
                     <dd class="col-sm-8">{{ $tenant->updated_at?->format('d.m.Y. H:i') ?? '—' }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Zadnja sync</dt>
+                    <dd class="col-sm-8">{{ $tenant->synced_at?->format('d.m.Y. H:i') ?? '—' }}</dd>
                 </dl>
             </div>
         </div>

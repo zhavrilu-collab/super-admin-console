@@ -76,6 +76,29 @@ class AuditLogService
         ]);
     }
 
+    public function logTenantTrialExtended(
+        User $actor,
+        Tenant $tenant,
+        ?string $from,
+        ?string $to,
+        int $days,
+    ): AuditLog {
+        return AuditLog::query()->create([
+            'user_id' => $actor->id,
+            'application_id' => $tenant->application_id,
+            'action' => AuditAction::TenantTrialExtended,
+            'subject_type' => Tenant::class,
+            'subject_id' => $tenant->id,
+            'properties' => [
+                'tenant_name' => $tenant->name,
+                'tenant_slug' => $tenant->slug,
+                'from' => $from,
+                'to' => $to,
+                'days' => $days,
+            ],
+        ]);
+    }
+
     public function logTenantDeleted(User $actor, Tenant $tenant): AuditLog
     {
         return AuditLog::query()->create([

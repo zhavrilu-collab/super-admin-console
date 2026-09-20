@@ -55,6 +55,25 @@ abstract class AbstractSaasOrganizationSyncDriver implements TenantSyncDriver
         $this->patchOrganization($tenant, $payload);
     }
 
+    /**
+     * @return array{trial_ends_at: ?string, plan: ?string}
+     */
+    public function pushTenantTrialExtension(Tenant $tenant, int $days): array
+    {
+        $response = $this->patchOrganization($tenant, [
+            'extend_trial_days' => $days,
+        ]);
+
+        return [
+            'trial_ends_at' => is_string($response['trial_ends_at'] ?? null)
+                ? $response['trial_ends_at']
+                : null,
+            'plan' => is_string($response['plan'] ?? null)
+                ? $response['plan']
+                : null,
+        ];
+    }
+
     public function deleteTenant(Tenant $tenant): void
     {
         $tenant->loadMissing('application');
@@ -88,24 +107,24 @@ abstract class AbstractSaasOrganizationSyncDriver implements TenantSyncDriver
     }
 
     /**
-     * @param  array<string, string>  $payload
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
      */
-    private function patchOrganization(Tenant $tenant, array $payload): void
+    private function patchOrganization(Tenant $tenant, array $payload): array
     {
         $config = $this->configFor($tenant->application);
         $externalId = $this->resolveExternalId($tenant, $config);
 
         try {
-            $this->sendPatch($config, $externalId, $payload);
+            return $this->sendPatch($config, $externalId, $payload);
         } catch (RequestException $exception) {
             if ($exception->response?->status() === 404) {
                 $resolvedId = $this->findOrganizationIdBySlug($tenant, $config);
 
                 if ($resolvedId !== null) {
                     $this->assignExternalId($tenant, $resolvedId);
-                    $this->sendPatch($config, $resolvedId, $payload);
 
-                    return;
+                    return $this->sendPatch($config, $resolvedId, $payload);
                 }
             }
 
@@ -118,16 +137,22 @@ abstract class AbstractSaasOrganizationSyncDriver implements TenantSyncDriver
 
     /**
      * @param  array{base_url: string, api_key: string}  $config
-     * @param  array<string, string>  $payload
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
      */
-    private function sendPatch(array $config, string $externalId, array $payload): void
+    private function sendPatch(array $config, string $externalId, array $payload): array
     {
-        $this->http($config['api_key'], $config['base_url'])
+        $response = $this->http($config['api_key'], $config['base_url'])
             ->patch(
                 rtrim($config['base_url'], '/').'/api/admin/organizations/'.$externalId,
                 $payload,
             )
             ->throw();
+
+        /** @var array<string, mixed> $data */
+        $data = $response->json('data', []);
+
+        return is_array($data) ? $data : [];
     }
 
     /**

@@ -7,6 +7,7 @@ enum AuditAction: string
     case TenantStatusChanged = 'tenant.status_changed';
     case TenantPlanChanged = 'tenant.plan_changed';
     case TenantSsoChanged = 'tenant.sso_changed';
+    case TenantTrialExtended = 'tenant.trial_extended';
     case TenantDeleted = 'tenant.deleted';
     case ImpersonationStarted = 'impersonation.started';
     case ImpersonationEnded = 'impersonation.ended';
@@ -27,6 +28,7 @@ enum AuditAction: string
             self::TenantStatusChanged => 'Promjena statusa tenanta',
             self::TenantPlanChanged => 'Promjena plana tenanta',
             self::TenantSsoChanged => 'Promjena SSO pravila tenanta',
+            self::TenantTrialExtended => 'Produljenje probnog perioda',
             self::TenantDeleted => 'Brisanje tenanta',
             self::ImpersonationStarted => 'Support ulaz u tenant',
             self::ImpersonationEnded => 'Support izlaz iz tenanta',
