@@ -20,6 +20,26 @@ class PlatformUnifiedLoginTest extends TestCase
         $this->get('/platform/prijava')->assertOk()->assertSee('Jedinstvena prijava');
     }
 
+    public function test_hr_platform_login_matches_superskycrew_signup_copy(): void
+    {
+        Application::query()->create([
+            'slug' => 'hr-saas',
+            'name' => 'HR SaaS',
+            'api_base_url' => 'https://hr.superskytech.com',
+        ]);
+
+        $this->get('/platform/prijava?application_slug=hr-saas')
+            ->assertOk()
+            ->assertSee('Prijava — SuperSkyCrew', false)
+            ->assertSee('SuperSkyCrew')
+            ->assertSee('Prijavi se')
+            ->assertSee('Zaboravili ste lozinku?')
+            ->assertSee('Nemate tvrtku?')
+            ->assertSee('https://hr.superskytech.com/registracija', false)
+            ->assertDontSee('Jedinstvena prijava')
+            ->assertDontSee('Pristup aplikaciji:');
+    }
+
     public function test_single_workspace_login_redirects_to_module_callback(): void
     {
         $application = Application::query()->create([

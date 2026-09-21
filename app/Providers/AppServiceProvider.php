@@ -7,6 +7,8 @@ use App\Services\Admin\ConsoleSettingsService;
 use App\Services\Admin\SubscriptionPlanService;
 use App\Socialite\MicrosoftProvider;
 use App\Support\AdminSession;
+use App\Support\PlatformLoginAppearance;
+use App\Support\PlatformLoginSession;
 use App\Support\TwoFactorSession;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -35,6 +37,28 @@ class AppServiceProvider extends ServiceProvider
         if (Schema::hasTable('settings')) {
             app(ConsoleSettingsService::class)->applyMailConfiguration();
         }
+
+        View::composer(['layouts.guest-platform', 'auth.platform-login'], function ($view): void {
+            if (array_key_exists('loginAppearance', $view->getData())) {
+                return;
+            }
+
+            $slug = request()->string('application_slug')->toString();
+            if ($slug === '') {
+                $sessionSlug = session(PlatformLoginSession::APPLICATION_SLUG);
+                $slug = is_string($sessionSlug) ? $sessionSlug : '';
+            }
+
+            $application = null;
+            if ($slug !== '' && Schema::hasTable('applications')) {
+                $application = Application::query()->where('slug', $slug)->first();
+            }
+
+            $view->with('loginAppearance', PlatformLoginAppearance::for(
+                $slug !== '' ? $slug : null,
+                $application,
+            ));
+        });
 
         View::composer('layouts.admin', function ($view): void {
             if (! auth()->check() || ! auth()->user()->isSuperAdmin()) {

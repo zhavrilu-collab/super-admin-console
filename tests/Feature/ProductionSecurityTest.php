@@ -23,7 +23,7 @@ class ProductionSecurityTest extends TestCase
     {
         config(['security.force_https' => true]);
 
-        $response = $this->get('http://localhost/login');
+        $response = $this->get('http://localhost/prijava');
 
         $response->assertRedirect();
         $this->assertStringStartsWith('https://', $response->headers->get('Location'));

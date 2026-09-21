@@ -12,16 +12,20 @@ class AuthenticationTest extends TestCase
 
     public function test_login_screen_can_be_rendered(): void
     {
-        $response = $this->get('/login');
+        $this->get('/prijava')
+            ->assertOk()
+            ->assertSee('E-mail')
+            ->assertSee('Prijavi se')
+            ->assertSee('Zaboravili ste lozinku?');
 
-        $response->assertStatus(200);
+        $this->get('/login')->assertRedirect('/prijava');
     }
 
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         $user = User::factory()->create();
 
-        $response = $this->post('/login', [
+        $response = $this->post('/prijava', [
             'email' => $user->email,
             'password' => 'password',
         ]);

@@ -11,7 +11,7 @@
     @csrf
 
     <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
+        <label for="email" class="form-label">E-mail</label>
         <input id="email" type="email" name="email" value="{{ old('email') }}"
                class="form-control @error('email') is-invalid @enderror" required autofocus autocomplete="username">
         @error('email')
@@ -34,7 +34,7 @@
     </div>
 
     <div class="d-grid">
-        <button type="submit" class="btn btn-dark">Prijava</button>
+        <button type="submit" class="btn btn-dark">Prijavi se</button>
     </div>
 
     <p class="text-center mt-3 mb-0 small">

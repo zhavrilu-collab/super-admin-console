@@ -18,9 +18,12 @@ Route::middleware('guest')->group(function () {
 
     Route::post('register', [RegisteredUserController::class, 'store']);
 
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])
+    Route::get('prijava', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
+    Route::post('prijava', [AuthenticatedSessionController::class, 'store']);
+
+    Route::get('login', fn () => redirect()->route('login'));
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
     Route::get('two-factor-challenge', [TwoFactorChallengeController::class, 'create'])
@@ -30,11 +33,14 @@ Route::middleware('guest')->group(function () {
         ->middleware('throttle:two-factor')
         ->name('two-factor.login.store');
 
-    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
+    Route::get('zaboravljena-lozinka', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
-    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+    Route::post('zaboravljena-lozinka', [PasswordResetLinkController::class, 'store'])
         ->name('password.email');
+
+    Route::get('forgot-password', fn () => redirect()->route('password.request'));
+    Route::post('forgot-password', [PasswordResetLinkController::class, 'store']);
 
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
         ->name('password.reset');
