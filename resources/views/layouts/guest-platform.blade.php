@@ -15,7 +15,7 @@
             --tekst-tamni: #1a3d3a;
         }
         .login-platform { background: #f8f9fa; }
-        .login-hr, .login-udruga {
+        .login-hr, .login-udruga, .login-control, .login-law {
             background: var(--svijetlo-zelena);
             font-family: 'Segoe UI', -apple-system, sans-serif;
             font-size: 13px;
@@ -31,16 +31,16 @@
         }
         .app-guest-lockup { display: block; max-width: 210px; width: 100%; height: auto; margin: 0 auto 1.15rem; }
         .text-tema { color: var(--primarna-zelena); }
-        .login-hr .btn-primary, .login-udruga .btn-primary {
+        .login-hr .btn-primary, .login-udruga .btn-primary, .login-control .btn-primary, .login-law .btn-primary {
             background: var(--primarna-zelena);
             border-color: var(--primarna-zelena);
             border-radius: 9px;
         }
-        .login-hr .btn-primary:hover, .login-udruga .btn-primary:hover {
+        .login-hr .btn-primary:hover, .login-udruga .btn-primary:hover, .login-control .btn-primary:hover, .login-law .btn-primary:hover {
             background: var(--primarna-tamna);
             border-color: var(--primarna-tamna);
         }
-        .login-hr a, .login-udruga a { color: var(--primarna-zelena); }
+        .login-hr a, .login-udruga a, .login-control a, .login-law a { color: var(--primarna-zelena); }
         .small, small { font-size: 12px !important; }
     </style>
 </head>

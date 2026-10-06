@@ -37,7 +37,30 @@ class PlatformUnifiedLoginTest extends TestCase
             ->assertSee('Nemate tvrtku?')
             ->assertSee('https://hr.superskytech.com/registracija', false)
             ->assertDontSee('Jedinstvena prijava')
-            ->assertDontSee('Pristup aplikaciji:');
+            ->assertDontSee('Pristup aplikaciji:')
+            ->assertSee('brand/superskycrew-zelena.png', false);
+    }
+
+    public function test_product_logins_show_green_vertical_logos(): void
+    {
+        foreach ([
+            'udruga-saas' => ['SuperSkyClub', 'brand/superskyclub-zelena.png', 'Nemate udrugu?'],
+            'smb-saas' => ['SuperSkyControl', 'brand/superskycontrol-zelena.png', 'Nemate tvrtku?'],
+            'legal-saas' => ['SuperSkyLaw', 'brand/superskylaw-zelena.png', 'Nemate ured?'],
+        ] as $slug => [$brand, $logo, $prompt]) {
+            Application::query()->create([
+                'slug' => $slug,
+                'name' => $brand,
+                'api_base_url' => 'https://'.$slug.'.test',
+            ]);
+
+            $this->get('/platform/prijava?application_slug='.$slug)
+                ->assertOk()
+                ->assertSee('Prijava — '.$brand, false)
+                ->assertSee($logo, false)
+                ->assertSee($prompt)
+                ->assertDontSee('Jedinstvena prijava');
+        }
     }
 
     public function test_single_workspace_login_redirects_to_module_callback(): void
