@@ -7,15 +7,19 @@
     <title>@yield('title', 'Prijava') — SuperSkyControl</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .login-tagline { min-height: 1.5em; }
+        .login-page { padding-top: 4.5rem; }
+        .login-logo { display: block; width: 210px; height: 156px; object-fit: contain; object-position: center bottom; margin: 0 auto 1rem; }
+        .login-tagline { height: 3em; line-height: 1.5; overflow: hidden; }
+        .login-links { margin-top: 1rem; }
+        .login-links p { height: 1.5em; line-height: 1.5; margin: 0; }
     </style>
 </head>
-<body class="bg-light d-flex align-items-center min-vh-100">
-<div class="container">
+<body class="bg-light">
+<div class="container login-page">
     <div class="row justify-content-center">
         <div class="col-md-5 col-lg-4">
             <div class="text-center mb-4">
-                <img src="{{ asset('brand/superskycontrol-zelena.png') }}" alt="SuperSkyControl" class="d-block mx-auto mb-3" style="max-width: 210px; width: 100%; height: auto;">
+                <img src="{{ asset('brand/superskycontrol-zelena.png') }}" alt="SuperSkyControl" class="login-logo">
                 <p class="text-muted small mb-0 login-tagline">Platforma za upravljanje SaaS aplikacijama.</p>
             </div>
             <div class="card border-0 shadow-sm">

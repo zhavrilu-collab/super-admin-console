@@ -36,9 +36,12 @@
     <div class="d-grid">
         <button type="submit" class="btn btn-dark">Prijavi se</button>
     </div>
+</form>
 
-    <p class="text-center mt-3 mb-0 small">
+<div class="login-links">
+    <p class="text-center small">
         <a href="{{ route('password.request') }}">Zaboravili ste lozinku?</a>
     </p>
-</form>
+    <p class="text-center small"></p>
+</div>
 @endsection
