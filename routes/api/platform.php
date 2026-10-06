@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ApiV1DocumentationController;
 use App\Http\Controllers\Api\Auth\PlatformAuthController;
+use App\Http\Controllers\Api\Auth\PlatformPasswordResetController;
 use App\Http\Controllers\Api\PlatformAccountErasureController;
 use App\Http\Controllers\Api\PlatformBillingController;
 use App\Http\Controllers\Api\PlatformCustomerWebhookController;
@@ -29,6 +30,8 @@ Route::middleware('throttle:platform-auth')
     ->group(function () use ($routeNamePrefix) {
         Route::post('login', [PlatformAuthController::class, 'login'])->name('login');
         Route::post('register', [PlatformAuthController::class, 'register'])->name('register');
+        Route::post('forgot-password', [PlatformPasswordResetController::class, 'store'])->name('forgot-password');
+        Route::post('reset-password', [PlatformPasswordResetController::class, 'update'])->name('reset-password');
         Route::post('two-factor', [PlatformAuthController::class, 'completeTwoFactor'])->name('two-factor');
 
         Route::middleware([AuthenticatePlatformToken::class])
