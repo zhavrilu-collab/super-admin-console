@@ -6,6 +6,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Prijava') — SuperSkyControl</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .login-tagline { min-height: 3em; }
+    </style>
 </head>
 <body class="bg-light d-flex align-items-center min-vh-100">
 <div class="container">
@@ -13,7 +16,7 @@
         <div class="col-md-5 col-lg-4">
             <div class="text-center mb-4">
                 <img src="{{ asset('brand/superskycontrol-zelena.png') }}" alt="SuperSkyControl" class="d-block mx-auto mb-3" style="max-width: 210px; width: 100%; height: auto;">
-                <p class="text-muted small mb-0">Centralizirano upravljanje SaaS aplikacijama</p>
+                <p class="text-muted small mb-0 login-tagline">Prijava u SuperSkyControl - platformu za upravljanje SaaS aplikacijama.</p>
             </div>
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
