@@ -14,6 +14,9 @@ class AuthenticationTest extends TestCase
     {
         $this->get('/prijava')
             ->assertOk()
+            ->assertSee('SuperSkyControl')
+            ->assertSee('brand/superskycontrol-zelena.png', false)
+            ->assertDontSee('Super-Admin Konzola')
             ->assertSee('E-mail')
             ->assertSee('Prijavi se')
             ->assertSee('Zaboravili ste lozinku?');

@@ -12,7 +12,8 @@
     <div class="row justify-content-center">
         <div class="col-md-5 col-lg-4">
             <div class="text-center mb-4">
-                <h1 class="h4 fw-semibold">Super-Admin Konzola</h1>
+                <img src="{{ asset('brand/superskycontrol-zelena.png') }}" alt="SuperSkyControl" class="d-block mx-auto mb-3" style="max-width: 210px; width: 100%; height: auto;">
+                <h1 class="h4 fw-semibold">SuperSkyControl</h1>
             </div>
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">

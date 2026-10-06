@@ -52,7 +52,7 @@ class PlatformSsoEnforceTest extends TestCase
         ]);
 
         $this->attachMembership($user, 'udruga-saas', 'sso-org', true);
-        $this->attachMembership($user, 'smb-saas', 'password-org', false);
+        $this->attachMembership($user, 'hr-saas', 'password-org', false);
 
         $this->postJson('/api/v1/auth/login', [
             'email' => 'mixed@test.hr',
@@ -71,7 +71,7 @@ class PlatformSsoEnforceTest extends TestCase
         ]);
 
         $this->attachMembership($user, 'udruga-saas', 'sso-org', true);
-        $this->attachMembership($user, 'smb-saas', 'password-org', false);
+        $this->attachMembership($user, 'hr-saas', 'password-org', false);
 
         $this->postJson('/api/v1/auth/login', [
             'email' => 'mixed-app@test.hr',
@@ -84,7 +84,7 @@ class PlatformSsoEnforceTest extends TestCase
         $this->postJson('/api/v1/auth/login', [
             'email' => 'mixed-app@test.hr',
             'password' => 'password123',
-            'application_slug' => 'smb-saas',
+            'application_slug' => 'hr-saas',
         ])
             ->assertOk()
             ->assertJsonStructure(['token']);

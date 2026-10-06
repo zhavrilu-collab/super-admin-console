@@ -21,7 +21,6 @@ bash /home/ubuntu/bin/deploy-hr-from-git.sh
 |---|---|---|
 | **multi-tenant console** | Super-Admin metadata, moderacija, sync | 8001 |
 | **udruga-saas** | Tenant aplikacija (udruga) | 8000 |
-| **smb-saas** | Tenant aplikacija (SMB) | 8002 |
 | **hr-saas** | Tenant aplikacija (HR / evidencija RV) | 8004 |
 
 **Integracija:**

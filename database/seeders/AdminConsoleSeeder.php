@@ -28,7 +28,7 @@ class AdminConsoleSeeder extends Seeder
         app(ConsoleSettingsService::class)->setMany([
             ConsoleSettingsService::MAIL_MAILER => 'log',
             ConsoleSettingsService::MAIL_FROM_ADDRESS => 'noreply@admin.local',
-            ConsoleSettingsService::MAIL_FROM_NAME => 'Super-Admin Konzola',
+            ConsoleSettingsService::MAIL_FROM_NAME => 'SuperSkyControl',
             ConsoleSettingsService::WEBHOOK_SECRET => 'dev-sync-key-change-me',
         ]);
 
@@ -52,19 +52,6 @@ class AdminConsoleSeeder extends Seeder
         );
 
         app(SubscriptionPlanService::class)->seedDefaults($udrugaSaas);
-
-        $smbSaas = Application::query()->updateOrCreate(
-            ['slug' => 'smb-saas'],
-            [
-                'name' => 'SMB SaaS',
-                'description' => 'Multi-tenant SaaS platforma za mala i srednja poduzeća.',
-                'sync_driver' => \App\Services\Admin\Sync\SmbSaasSyncDriver::class,
-                'api_base_url' => 'http://127.0.0.1:8002',
-                'api_sync_key' => 'dev-sync-key-change-me',
-            ],
-        );
-
-        app(SubscriptionPlanService::class)->seedSmbDefaults($smbSaas);
 
         $hrSaas = Application::query()->updateOrCreate(
             ['slug' => 'hr-saas'],

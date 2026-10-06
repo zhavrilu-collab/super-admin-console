@@ -45,7 +45,6 @@ class PlatformUnifiedLoginTest extends TestCase
     {
         foreach ([
             'udruga-saas' => ['SuperSkyClub', 'brand/superskyclub-zelena.png', 'Nemate udrugu?'],
-            'smb-saas' => ['SuperSkyControl', 'brand/superskycontrol-zelena.png', 'Nemate tvrtku?'],
             'legal-saas' => ['SuperSkyLaw', 'brand/superskylaw-zelena.png', 'Nemate ured?'],
         ] as $slug => [$brand, $logo, $prompt]) {
             Application::query()->create([
@@ -120,10 +119,10 @@ class PlatformUnifiedLoginTest extends TestCase
             'api_base_url' => 'http://127.0.0.1:8000',
         ]);
 
-        $smbApp = Application::query()->create([
-            'slug' => 'smb-saas',
-            'name' => 'SMB SaaS',
-            'api_base_url' => 'http://127.0.0.1:8002',
+        $hrApp = Application::query()->create([
+            'slug' => 'hr-saas',
+            'name' => 'HR SaaS',
+            'api_base_url' => 'http://127.0.0.1:8004',
         ]);
 
         $user = User::factory()->create([
@@ -134,7 +133,7 @@ class PlatformUnifiedLoginTest extends TestCase
 
         foreach ([
             [$udrugaApp, '10', 'udruga-a'],
-            [$smbApp, '20', 'firma-b'],
+            [$hrApp, '20', 'firma-b'],
         ] as [$application, $externalId, $slug]) {
             $tenant = Tenant::query()->create([
                 'application_id' => $application->id,
@@ -178,10 +177,10 @@ class PlatformUnifiedLoginTest extends TestCase
             'api_base_url' => 'http://127.0.0.1:8000',
         ]);
 
-        $smbApp = Application::query()->create([
-            'slug' => 'smb-saas',
-            'name' => 'SMB SaaS',
-            'api_base_url' => 'http://127.0.0.1:8002',
+        $hrApp = Application::query()->create([
+            'slug' => 'hr-saas',
+            'name' => 'HR SaaS',
+            'api_base_url' => 'http://127.0.0.1:8004',
         ]);
 
         $user = User::factory()->create([
@@ -199,8 +198,8 @@ class PlatformUnifiedLoginTest extends TestCase
             'plan' => 'basic',
         ]);
 
-        $smbTenant = Tenant::query()->create([
-            'application_id' => $smbApp->id,
+        $hrTenant = Tenant::query()->create([
+            'application_id' => $hrApp->id,
             'external_id' => '55',
             'slug' => 'demo-firma',
             'name' => 'Demo firma',
@@ -210,7 +209,7 @@ class PlatformUnifiedLoginTest extends TestCase
 
         foreach ([
             [$udrugaApp, $udrugaTenant, '11'],
-            [$smbApp, $smbTenant, '55'],
+            [$hrApp, $hrTenant, '55'],
         ] as [$application, $tenant, $externalUserId]) {
             PlatformUserLink::query()->create([
                 'user_id' => $user->id,
@@ -231,12 +230,12 @@ class PlatformUnifiedLoginTest extends TestCase
         ])->assertRedirect(route('platform.pick'));
 
         $response = $this->post(route('platform.pick.store'), [
-            'workspace_key' => 'smb-saas:55',
+            'workspace_key' => 'hr-saas:55',
         ]);
 
         $response->assertRedirect();
         $location = (string) $response->headers->get('Location');
-        $this->assertStringStartsWith('http://127.0.0.1:8002/auth/core/callback?', $location);
+        $this->assertStringStartsWith('http://127.0.0.1:8004/auth/core/callback?', $location);
     }
 
     public function test_login_without_workspaces_shows_error(): void

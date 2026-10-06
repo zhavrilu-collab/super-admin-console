@@ -4,14 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Super-Admin') — {{ config('app.name') }}</title>
+    <title>@yield('title', 'SuperSkyControl') — {{ config('app.name') }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     @stack('styles')
 </head>
 <body class="bg-light">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container-fluid px-4">
-        <a class="navbar-brand fw-semibold" href="{{ route('admin.dashboard') }}">Super-Admin</a>
+        <a class="navbar-brand fw-semibold" href="{{ route('admin.dashboard') }}">SuperSkyControl</a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
             <span class="navbar-toggler-icon"></span>

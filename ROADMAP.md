@@ -283,7 +283,7 @@ flowchart TB
 
 | Sprint | Fokus | Deliverables |
 |--------|-------|--------------|
-| E-S1 | E1, E2 (scaffold) | SMB Application u konzoli + `smb-saas` modul (sync API, Core auth) | ✅ |
+| E-S1 | E1, E2 (scaffold) | SMB modul je uklonjen iz konzole | uklonjeno |
 | E-S2 | E2, E3 | Registracija tvrtke, RBAC profili | ✅ |
 | E-S3 | E4 | Računi i PDV modul | |
 

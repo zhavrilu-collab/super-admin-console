@@ -30,7 +30,6 @@ class ApplicationFeatureCatalogService
     public function seedDefaults(Application $application): void
     {
         $defaults = match ($this->catalogKind($application)) {
-            'smb' => $this->smbCatalogDefinitions(),
             'hr' => $this->hrCatalogDefinitions(),
             default => $this->udrugaCatalogDefinitions(),
         };
@@ -60,7 +59,6 @@ class ApplicationFeatureCatalogService
     public function defaultFeaturesForPlanSlug(Application $application, string $slug): array
     {
         return match ($this->catalogKind($application)) {
-            'smb' => $this->smbPlanFeatureDefaults($slug),
             'hr' => $this->hrPlanFeatureDefaults($slug),
             default => $this->udrugaPlanFeatureDefaults($slug),
         };
@@ -96,7 +94,6 @@ class ApplicationFeatureCatalogService
     {
         $application = $feature->application;
         $builtinKeys = collect(match ($this->catalogKind($application)) {
-            'smb' => $this->smbCatalogDefinitions(),
             'hr' => $this->hrCatalogDefinitions(),
             default => $this->udrugaCatalogDefinitions(),
         })->pluck('key')->all();
@@ -138,7 +135,6 @@ class ApplicationFeatureCatalogService
         $slug = strtolower($application->slug);
 
         return match (true) {
-            str_contains($slug, 'smb') => 'smb',
             str_contains($slug, 'hr-saas') || $slug === 'hr' => 'hr',
             default => 'udruga',
         };
@@ -225,24 +221,6 @@ class ApplicationFeatureCatalogService
             ['key' => 'staff_invites', 'label' => 'Pozivnice administratorima', 'type' => $B, 'sort_order' => 83],
             ['key' => 'audit_log', 'label' => 'Zapisnik promjena', 'type' => $B, 'sort_order' => 84],
             ['key' => 'rbac_custom', 'label' => 'Prilagođena prava po ulogama', 'type' => $B, 'sort_order' => 85],
-        ];
-    }
-
-    /**
-     * @return list<array{key: string, label: string, description?: string|null, type: ApplicationFeatureType, unit?: string|null, sort_order: int}>
-     */
-    public function smbCatalogDefinitions(): array
-    {
-        $B = ApplicationFeatureType::Boolean;
-        $L = ApplicationFeatureType::Limit;
-
-        return [
-            ['key' => 'member_limit', 'label' => 'Limit članova tima', 'type' => $L, 'unit' => 'members', 'sort_order' => 10],
-            ['key' => 'team_management', 'label' => 'Upravljanje timom / pozivnice', 'type' => $B, 'sort_order' => 20],
-            ['key' => 'sales_module', 'label' => 'Modul Prodaja', 'type' => $B, 'sort_order' => 30],
-            ['key' => 'finance_module', 'label' => 'Modul Financije', 'type' => $B, 'sort_order' => 40],
-            ['key' => 'subdomain', 'label' => 'Poddomena', 'type' => $B, 'sort_order' => 50],
-            ['key' => 'custom_domain', 'label' => 'Vlastita domena', 'type' => $B, 'sort_order' => 60],
         ];
     }
 
@@ -370,41 +348,6 @@ class ApplicationFeatureCatalogService
                 'data_import' => false,
                 'rbac_custom' => false,
             ]),
-            default => $premium,
-        };
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function smbPlanFeatureDefaults(string $slug): array
-    {
-        $premium = [
-            'member_limit' => null,
-            'team_management' => true,
-            'sales_module' => true,
-            'finance_module' => true,
-            'subdomain' => true,
-            'custom_domain' => true,
-        ];
-
-        return match ($slug) {
-            'basic' => [
-                'member_limit' => 3,
-                'team_management' => true,
-                'sales_module' => false,
-                'finance_module' => false,
-                'subdomain' => false,
-                'custom_domain' => false,
-            ],
-            'standard' => [
-                'member_limit' => 15,
-                'team_management' => true,
-                'sales_module' => true,
-                'finance_module' => false,
-                'subdomain' => true,
-                'custom_domain' => false,
-            ],
             default => $premium,
         };
     }
