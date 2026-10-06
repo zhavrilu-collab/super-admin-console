@@ -12,6 +12,16 @@
         .login-tagline { height: 3em; line-height: 1.5; overflow: hidden; }
         .login-links { margin-top: 1rem; }
         .login-links p { height: 1.5em; line-height: 1.5; margin: 0; }
+        .login-card a { color: #0d6efd; }
+        .login-card a:hover { color: #0a58ca; }
+        .form-control:focus, .form-select:focus, .form-check-input:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -22,7 +32,7 @@
                 <img src="{{ asset('brand/superskycontrol-zelena.png') }}" alt="SuperSkyControl" class="login-logo">
                 <p class="text-muted small mb-0 login-tagline">Platforma za upravljanje SaaS aplikacijama.</p>
             </div>
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm login-card">
                 <div class="card-body p-4">
                     @yield('content')
                 </div>
