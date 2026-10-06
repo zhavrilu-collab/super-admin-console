@@ -9,7 +9,7 @@
     <style>
         html { scrollbar-gutter: stable; }
         .login-page { padding-top: 4.5rem; }
-        .login-logo { display: block; width: auto; height: 155px; margin: 0 auto 1rem; }
+        .login-logo { display: block; width: 210px; height: 156px; object-fit: contain; object-position: center bottom; margin: 0 auto 1rem; }
         .login-tagline { height: 3em; line-height: 1.5; overflow: hidden; }
         .login-links { margin-top: 1rem; }
         .login-links p { height: 1.5em; line-height: 1.5; margin: 0; }
