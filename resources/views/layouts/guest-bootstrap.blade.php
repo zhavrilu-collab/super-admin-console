@@ -13,7 +13,6 @@
         <div class="col-md-5 col-lg-4">
             <div class="text-center mb-4">
                 <img src="{{ asset('brand/superskycontrol-zelena.png') }}" alt="SuperSkyControl" class="d-block mx-auto mb-3" style="max-width: 210px; width: 100%; height: auto;">
-                <h1 class="h4 fw-semibold">SuperSkyControl</h1>
                 <p class="text-muted small mb-0">Centralizirano upravljanje SaaS aplikacijama</p>
             </div>
             <div class="card border-0 shadow-sm">
