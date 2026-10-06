@@ -31,6 +31,7 @@ class ApplicationFeatureCatalogService
     {
         $defaults = match ($this->catalogKind($application)) {
             'hr' => $this->hrCatalogDefinitions(),
+            'legal' => $this->legalCatalogDefinitions(),
             default => $this->udrugaCatalogDefinitions(),
         };
 
@@ -60,6 +61,7 @@ class ApplicationFeatureCatalogService
     {
         return match ($this->catalogKind($application)) {
             'hr' => $this->hrPlanFeatureDefaults($slug),
+            'legal' => $this->legalPlanFeatureDefaults($slug),
             default => $this->udrugaPlanFeatureDefaults($slug),
         };
     }
@@ -95,6 +97,7 @@ class ApplicationFeatureCatalogService
         $application = $feature->application;
         $builtinKeys = collect(match ($this->catalogKind($application)) {
             'hr' => $this->hrCatalogDefinitions(),
+            'legal' => $this->legalCatalogDefinitions(),
             default => $this->udrugaCatalogDefinitions(),
         })->pluck('key')->all();
 
@@ -136,6 +139,7 @@ class ApplicationFeatureCatalogService
 
         return match (true) {
             str_contains($slug, 'hr-saas') || $slug === 'hr' => 'hr',
+            str_contains($slug, 'legal') => 'legal',
             default => 'udruga',
         };
     }
@@ -424,6 +428,83 @@ class ApplicationFeatureCatalogService
                 'volunteer_module' => false,
                 'subdomain' => true,
                 'custom_domain' => false,
+            ],
+            default => $premium,
+        };
+    }
+
+    /**
+     * @return list<array{key: string, label: string, description?: string|null, type: ApplicationFeatureType, unit?: string|null, sort_order: int}>
+     */
+    public function legalCatalogDefinitions(): array
+    {
+        $B = ApplicationFeatureType::Boolean;
+        $L = ApplicationFeatureType::Limit;
+
+        return [
+            ['key' => 'user_limit', 'label' => 'Limit korisnika', 'description' => 'Maksimalan broj članova ureda', 'type' => $L, 'unit' => 'users', 'sort_order' => 10],
+            ['key' => 'matter_limit', 'label' => 'Limit predmeta', 'description' => 'Maksimalan broj predmeta', 'type' => $L, 'unit' => 'matters', 'sort_order' => 11],
+            ['key' => 'storage_mb', 'label' => 'Pohrana dokumenata', 'description' => 'Megabajti privatne pohrane', 'type' => $L, 'unit' => 'MB', 'sort_order' => 12],
+            ['key' => 'tariff_hok', 'label' => 'Tarifa HOK-a', 'type' => $B, 'sort_order' => 20],
+            ['key' => 'document_templates', 'label' => 'Predlošci dokumenata', 'type' => $B, 'sort_order' => 21],
+            ['key' => 'document_versioning', 'label' => 'Verzioniranje dokumenata', 'type' => $B, 'sort_order' => 22],
+            ['key' => 'time_approval', 'label' => 'Odobrenje sati', 'type' => $B, 'sort_order' => 30],
+            ['key' => 'client_portal', 'label' => 'Portal za klijente', 'type' => $B, 'sort_order' => 40],
+            ['key' => 'e_invoice', 'label' => 'e-Račun i fiskalizacija', 'type' => $B, 'sort_order' => 50],
+            ['key' => 'calendar_sync', 'label' => 'Sinkronizacija kalendara', 'type' => $B, 'sort_order' => 51],
+            ['key' => 'email_intake', 'label' => 'E-pošta u predmet', 'type' => $B, 'sort_order' => 52],
+            ['key' => 'esign', 'label' => 'e-Potpis', 'type' => $B, 'sort_order' => 53],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function legalPlanFeatureDefaults(string $slug): array
+    {
+        $premium = [
+            'user_limit' => null,
+            'matter_limit' => null,
+            'storage_mb' => 102400,
+            'tariff_hok' => true,
+            'document_templates' => true,
+            'document_versioning' => true,
+            'time_approval' => true,
+            'client_portal' => true,
+            'e_invoice' => true,
+            'calendar_sync' => true,
+            'email_intake' => true,
+            'esign' => true,
+        ];
+
+        return match ($slug) {
+            'basic' => [
+                'user_limit' => 3,
+                'matter_limit' => 50,
+                'storage_mb' => 1024,
+                'tariff_hok' => false,
+                'document_templates' => false,
+                'document_versioning' => false,
+                'time_approval' => false,
+                'client_portal' => false,
+                'e_invoice' => false,
+                'calendar_sync' => false,
+                'email_intake' => false,
+                'esign' => false,
+            ],
+            'standard' => [
+                'user_limit' => 15,
+                'matter_limit' => 500,
+                'storage_mb' => 10240,
+                'tariff_hok' => true,
+                'document_templates' => true,
+                'document_versioning' => true,
+                'time_approval' => true,
+                'client_portal' => true,
+                'e_invoice' => false,
+                'calendar_sync' => false,
+                'email_intake' => false,
+                'esign' => false,
             ],
             default => $premium,
         };

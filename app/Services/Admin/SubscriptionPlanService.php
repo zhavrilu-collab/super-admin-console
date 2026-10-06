@@ -180,6 +180,43 @@ class SubscriptionPlanService
         $this->upsertSeedPlans($application, $defaults);
     }
 
+    public function seedLegalDefaults(Application $application): void
+    {
+        $this->featureCatalog->seedDefaults($application);
+
+        $defaults = [
+            [
+                'slug' => 'basic',
+                'name' => 'Basic',
+                'badge_class' => 'secondary',
+                'sort_order' => 1,
+                'is_default' => true,
+                'monthly_price_cents' => 0,
+                'features' => $this->featureCatalog->defaultFeaturesForPlanSlug($application, 'basic'),
+            ],
+            [
+                'slug' => 'standard',
+                'name' => 'Standard',
+                'badge_class' => 'primary',
+                'sort_order' => 2,
+                'is_default' => false,
+                'monthly_price_cents' => 7900,
+                'features' => $this->featureCatalog->defaultFeaturesForPlanSlug($application, 'standard'),
+            ],
+            [
+                'slug' => 'premium',
+                'name' => 'Premium',
+                'badge_class' => 'dark',
+                'sort_order' => 3,
+                'is_default' => false,
+                'monthly_price_cents' => 19900,
+                'features' => $this->featureCatalog->defaultFeaturesForPlanSlug($application, 'premium'),
+            ],
+        ];
+
+        $this->upsertSeedPlans($application, $defaults);
+    }
+
     /**
      * @param  list<array<string, mixed>>  $defaults
      */

@@ -66,6 +66,19 @@ class AdminConsoleSeeder extends Seeder
 
         app(SubscriptionPlanService::class)->seedHrDefaults($hrSaas);
 
+        $legalSaas = Application::query()->updateOrCreate(
+            ['slug' => 'legal-saas'],
+            [
+                'name' => 'SuperSkyLaw',
+                'description' => 'Multi-tenant SaaS za upravljanje odvjetničkim uredom.',
+                'sync_driver' => \App\Services\Admin\Sync\LegalSaasSyncDriver::class,
+                'api_base_url' => (string) config('saas_applications.applications.legal-saas.base_url', 'http://127.0.0.1:8006'),
+                'api_sync_key' => (string) (config('saas_applications.applications.legal-saas.api_key') ?: 'dev-sync-key-change-me'),
+            ],
+        );
+
+        app(SubscriptionPlanService::class)->seedLegalDefaults($legalSaas);
+
         $opgSaas = Application::query()->where('slug', 'opg-saas')->first();
         if ($opgSaas !== null) {
             app(SubscriptionPlanService::class)->seedDefaults($opgSaas);

@@ -22,6 +22,10 @@ return [
             'label' => 'HR SaaS API (standardni)',
             'class' => \App\Services\Admin\Sync\HrSaasSyncDriver::class,
         ],
+        'legal_saas' => [
+            'label' => 'Legal SaaS API (standardni)',
+            'class' => \App\Services\Admin\Sync\LegalSaasSyncDriver::class,
+        ],
     ],
 
     'applications' => [
@@ -36,6 +40,12 @@ return [
             'driver' => \App\Services\Admin\Sync\HrSaasSyncDriver::class,
             'base_url' => env('HR_SAAS_API_URL', 'http://127.0.0.1:8004'),
             'api_key' => env('HR_SAAS_API_KEY'),
+        ],
+
+        'legal-saas' => [
+            'driver' => \App\Services\Admin\Sync\LegalSaasSyncDriver::class,
+            'base_url' => env('LEGAL_SAAS_API_URL', 'http://127.0.0.1:8006'),
+            'api_key' => env('LEGAL_SAAS_API_KEY'),
         ],
 
     ],
