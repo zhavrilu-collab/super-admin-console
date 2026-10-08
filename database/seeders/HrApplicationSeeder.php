@@ -22,7 +22,7 @@ class HrApplicationSeeder extends Seeder
         $hrSaas = Application::query()->updateOrCreate(
             ['slug' => 'hr-saas'],
             [
-                'name' => 'HR SaaS',
+                'name' => 'SuperSkyCrew',
                 'description' => 'Multi-tenant SaaS za upravljanje ljudskim resursima i evidenciju radnog vremena.',
                 'sync_driver' => HrSaasSyncDriver::class,
                 'api_base_url' => $baseUrl,

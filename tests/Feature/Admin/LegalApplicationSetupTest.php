@@ -20,6 +20,7 @@ class LegalApplicationSetupTest extends TestCase
         $application = Application::query()->where('slug', 'legal-saas')->first();
 
         $this->assertNotNull($application);
+        $this->assertSame('SuperSkyLaw', $application->name);
         $this->assertSame(LegalSaasSyncDriver::class, $application->sync_driver);
         $this->assertSame('http://127.0.0.1:8006', $application->api_base_url);
     }

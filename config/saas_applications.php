@@ -15,15 +15,15 @@ return [
 
     'drivers' => [
         'udruga_saas' => [
-            'label' => 'Udruga SaaS API (standardni)',
+            'label' => 'SuperSkyClub API (standardni)',
             'class' => \App\Services\Admin\Sync\UdrugaSaasSyncDriver::class,
         ],
         'hr_saas' => [
-            'label' => 'HR SaaS API (standardni)',
+            'label' => 'SuperSkyCrew API (standardni)',
             'class' => \App\Services\Admin\Sync\HrSaasSyncDriver::class,
         ],
         'legal_saas' => [
-            'label' => 'Legal SaaS API (standardni)',
+            'label' => 'SuperSkyLaw API (standardni)',
             'class' => \App\Services\Admin\Sync\LegalSaasSyncDriver::class,
         ],
     ],

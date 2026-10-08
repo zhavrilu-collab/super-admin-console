@@ -20,8 +20,12 @@ class HrApplicationSetupTest extends TestCase
         $application = Application::query()->where('slug', 'hr-saas')->first();
 
         $this->assertNotNull($application);
+        $this->assertSame('SuperSkyCrew', $application->name);
         $this->assertSame(HrSaasSyncDriver::class, $application->sync_driver);
         $this->assertSame('http://127.0.0.1:8004', $application->api_base_url);
+        $this->assertSame('SuperSkyClub', Application::query()->where('slug', 'udruga-saas')->value('name'));
+        $this->assertSame('SuperSkyLaw', Application::query()->where('slug', 'legal-saas')->value('name'));
+        $this->assertNull(Application::query()->where('slug', 'opg-saas')->first());
     }
 
     public function test_hr_default_subscription_plans_and_features_are_seeded(): void
@@ -75,7 +79,7 @@ class HrApplicationSetupTest extends TestCase
     public function test_hr_application_seeder_is_safe_to_run_on_production(): void
     {
         config([
-            'saas_applications.applications.hr-saas.base_url' => 'https://hr.superskytech.com',
+            'saas_applications.applications.hr-saas.base_url' => 'https://crew.superskytech.com',
             'saas_applications.applications.hr-saas.api_key' => 'prod-hr-key',
         ]);
 
@@ -84,8 +88,9 @@ class HrApplicationSetupTest extends TestCase
         $application = Application::query()->where('slug', 'hr-saas')->first();
 
         $this->assertNotNull($application);
+        $this->assertSame('SuperSkyCrew', $application->name);
         $this->assertSame(HrSaasSyncDriver::class, $application->sync_driver);
-        $this->assertSame('https://hr.superskytech.com', $application->api_base_url);
+        $this->assertSame('https://crew.superskytech.com', $application->api_base_url);
         $this->assertSame('prod-hr-key', $application->api_sync_key);
         $this->assertSame(0, \App\Models\Tenant::query()->count());
     }

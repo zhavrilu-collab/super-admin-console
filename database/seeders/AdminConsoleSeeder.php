@@ -35,19 +35,11 @@ class AdminConsoleSeeder extends Seeder
         $udrugaSaas = Application::query()->updateOrCreate(
             ['slug' => 'udruga-saas'],
             [
-                'name' => 'Udruga SaaS',
+                'name' => 'SuperSkyClub',
                 'description' => 'Multi-tenant SaaS platforma za udruge.',
                 'sync_driver' => \App\Services\Admin\Sync\UdrugaSaasSyncDriver::class,
                 'api_base_url' => 'http://127.0.0.1:8000',
                 'api_sync_key' => 'dev-sync-key-change-me',
-            ],
-        );
-
-        Application::query()->updateOrCreate(
-            ['slug' => 'opg-saas'],
-            [
-                'name' => 'OPG SaaS',
-                'description' => 'SaaS platforma za OPG-ove (demo aplikacija bez tenanata).',
             ],
         );
 
@@ -56,7 +48,7 @@ class AdminConsoleSeeder extends Seeder
         $hrSaas = Application::query()->updateOrCreate(
             ['slug' => 'hr-saas'],
             [
-                'name' => 'HR SaaS',
+                'name' => 'SuperSkyCrew',
                 'description' => 'Multi-tenant SaaS za upravljanje ljudskim resursima i evidenciju radnog vremena.',
                 'sync_driver' => \App\Services\Admin\Sync\HrSaasSyncDriver::class,
                 'api_base_url' => (string) config('saas_applications.applications.hr-saas.base_url', 'http://127.0.0.1:8004'),
@@ -78,11 +70,6 @@ class AdminConsoleSeeder extends Seeder
         );
 
         app(SubscriptionPlanService::class)->seedLegalDefaults($legalSaas);
-
-        $opgSaas = Application::query()->where('slug', 'opg-saas')->first();
-        if ($opgSaas !== null) {
-            app(SubscriptionPlanService::class)->seedDefaults($opgSaas);
-        }
 
         $tenants = [
             ['external_id' => 'org-001', 'name' => 'Športski klub Zagreb', 'slug' => 'sk-zagreb', 'status' => TenantStatus::Active, 'plan' => 'standard'],

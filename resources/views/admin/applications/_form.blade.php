@@ -11,7 +11,7 @@
     <label class="form-label">Slug</label>
     <input type="text" name="slug" class="form-control @error('slug') is-invalid @enderror"
            value="{{ old('slug', $application->slug ?? '') }}" required
-           pattern="[a-z0-9\-]+" placeholder="npr. opg-saas">
+           pattern="[a-z0-9\-]+" placeholder="npr. legal-saas">
     <div class="form-text">Samo mala slova, brojke i crtice.</div>
     @error('slug')<div class="invalid-feedback">{{ $message }}</div>@enderror
 </div>
